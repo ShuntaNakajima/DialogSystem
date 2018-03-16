@@ -6,7 +6,8 @@ class DialogSystem:
 
     def __init__(self):
         self.theme = 'NewGame'
-
+    def searchData(self,text):
+        
     def generateConstraction(self, data):
         """
         発話に使用するための対比を生成する
