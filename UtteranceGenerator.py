@@ -1,4 +1,6 @@
 import string
+import urllib
+
 class DialogSystem:
     """
     AのBはCという情報を対比という形で使うことで，面白い発話を作る対話システム
@@ -7,7 +9,7 @@ class DialogSystem:
     def __init__(self):
         self.theme = 'NewGame'
     def searchData(self,text):
-        
+        pass
     def generateConstraction(self, data):
         """
         発話に使用するための対比を生成する
@@ -46,5 +48,6 @@ class DialogSystem:
             generatedString = 'わかりません'
         elif inputType == 400:
             if target == None:
+                pass
             generatedString = '私も%sの%sは%sだと思います！' % (target,Evalu_ax,Evalu)
         return (generatedString)
