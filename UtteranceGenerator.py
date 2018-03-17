@@ -1,12 +1,9 @@
 import string
-import urllib
-import yaml
 
 class DialogSystem:
     """
     AのBはCという情報を対比という形で使うことで，面白い発話を作る対話システム
     """
-
     def __init__(self):
         self.theme = 'NewGame'
         self.TABC = ['Topic','A','B','C']
