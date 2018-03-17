@@ -22,10 +22,10 @@ class DialogSystem:
 
         返値 : (A, B, C) の情報が入ったタプル
         """
-        if data == ['青葉','髪','きれい']:
-            generateddata = ['八神公','髪','きれい']
+        if data == ('青葉','髪','きれい'):
+            generateddata = ('八神公','髪','きれい',bool(1))
         else:
-            generateddata = data
+            generateddata = data + (bool(0))
         print ('GeneratedConstraction!:%s,%s,%s' % (generateddata[0],generateddata[1],generateddata[2]))
         return generateddata
 
@@ -47,10 +47,17 @@ class DialogSystem:
             if self.TABC[0] and self.TABC[1] and self.TABC[2] and self.TABC[3]:
                 if data[0] or data[1] or data[2]:
                     contractionItem = self.generateConstraction((self.TABC[1],self.TABC[2],self.TABC[3]))
-                    generatedString = 'あー，%sの%sが%sみたいにね' % (contractionItem[0],contractionItem[1],contractionItem[2])
+                    if contractionItem[4] == bool(1):
+                        generatedString = 'あー，%sの%sが%sみたいにね' % (contractionItem[0],contractionItem[1],contractionItem[2],contractionItem[3])
+                    else:
+                        generatedString = 'たしかに'
                 else:
-                    #ゼブンブない？
-                    pass
+                    #話題を変えましょう
+                    contractionItem = self.generateConstraction((self.TABC[1],self.TABC[2],self.TABC[3]))
+                    if contractionItem[4] == bool(1):
+                        generatedString = 'うーん，%sの%sとか%sだけどね' % (contractionItem[0],contractionItem[1],contractionItem[2],contractionItem[3])
+                    else:
+                        generatedString = 'たしかに'#ここどうしよう.....
             else:
                 generatedString = 'うん,'
         else:
