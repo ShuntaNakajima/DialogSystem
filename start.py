@@ -15,7 +15,7 @@ def start():
     hastopic = input("")
     print ('topic')
     dia.theme = input("")
-    data = [A,B,C]
+    data = (A,B,C)
     result = dia.generateUtterance(data,int(inputtype),bool(hastopic))
     print(result)
 if __name__ == '__main__':
