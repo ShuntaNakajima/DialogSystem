@@ -1,17 +1,17 @@
 import string
-import urllib
 
 class DialogSystem:
     """
     AのBはCという情報を対比という形で使うことで，面白い発話を作る対話システム
     """
-
     def __init__(self):
         self.theme = 'NewGame'
-        self.TABC = ['Topic','A','B','']
+        self.TABC = ['Topic','A','B','C']
+        #with open("resource/ahalist.yml") as file:
+        #    self.ahalist = yaml.load(file)
+        #print (self.ahalist[0])
 
     def searchData(self,text):
-
         pass
     def generateConstraction(self, data):
         """
@@ -19,10 +19,10 @@ class DialogSystem:
 
         返値 : (A, B, C) の情報が入ったタプル
         """
-        if data == ['青葉','髪','きれい']:
-            generateddata = ['八神公','髪','きれい']
+        if data == ('青葉','髪','きれい'):
+            generateddata = ('八神公','髪','きれい',bool(1))
         else:
-            generateddata = data
+            generateddata = data + (bool(0))
         print ('GeneratedConstraction!:%s,%s,%s' % (generateddata[0],generateddata[1],generateddata[2]))
         return generateddata
 
@@ -40,58 +40,31 @@ class DialogSystem:
         target = data[0]
         Evalu_ax = data[1]
         Evalu = data[2]
-        if self.TABC[0] and self.TABC[1] and self.TABC[2] and self.TABC[3]:
-            pass
-        else:
-            if hasTopic:
-                pass
-            else:
-                pass
-            if inputType == 100:
-                generateddata = self.generateConstraction(data)
-                generatedString = '%sの%sとかも%sだしね〜' % (generateddata[0],generateddata[1],generateddata[2])
-                #net(対比)やがみこうの髪とかも，綺麗だしね
-                #generatedString = 'そうですね'
-            elif inputType == 200:
-                if hasTopic:
-                    pass
-                else:
-                    pass
-                if Evaku and Evalu_ax and target:
-                    print('確認じゃない？')
-                    #全部ある
-                    generatedString = 'Error'
-                elif Evalu == None and Evalu_ax == None and target == None:
-                    print('相槌じゃない？沈黙？')
-                    #全部不足
-                    generatedString = 'なに？'
-                elif Evalu == None and Evalu_ax and target:
-                    #AとBはある
-                    generatedString = 'うん，'
-                elif Evalu == None:
-                    if Evalu_ax == None:
-                        #Aだけがある 花子？ -> よしこ (theme=アホガール,間違った性別=女,主人公)
-                        generatedString = 'うん，'
+        if inputType == 1000:
+            if self.TABC[0] and self.TABC[1] and self.TABC[2] and self.TABC[3]:
+                if data[0] or data[1] or data[2]:
+                    contractionItem = self.generateConstraction((self.TABC[1],self.TABC[2],self.TABC[3]))
+                    if contractionItem[4] == bool(1):
+                        generatedString = 'あー，%sの%sが%sみたいにね' % (contractionItem[0],contractionItem[1],contractionItem[2],contractionItem[3])
                     else:
-                        #Bだけがある
-                        generatedString = 'うん，'
-                elif Evalu_ax == None and target == None:
-                    generatedString = 'うん，'
-                    #Cだけがある
-                elif Evalu_ax:
-                    generatedString = 'うん，'
-                    #CとBはある
-                elif target:
-                    generatedString = 'うん，'
-                    #CとAはある
+                        generatedString = 'たしかに'
                 else:
-                    generatedString = ''
-                    print('what happend?')
-            elif inputType == 300:
-                generatedString = 'わかりません'
+                    #話題を変えましょう
+                    contractionItem = self.generateConstraction((self.TABC[1],self.TABC[2],self.TABC[3]))
+                    if contractionItem[4] == bool(1):
+                        generatedString = 'うーん，%sの%sとか%sだけどね' % (contractionItem[0],contractionItem[1],contractionItem[2],contractionItem[3])
+                    else:
+                        generatedString = 'たしかに'#ここどうしよう.....
+            else:
+                generatedString = 'うん,'
+        else:
+            if inputType == 100:
+                generatedString = 'あーそうだと思うよ'
                 #net
-            elif inputType == 1000:
-                if target == None:
-                    pass
-                generatedString = 'うん，'
-            return (generatedString)
+            elif inputType == 200:
+                generatedString = 'なんでだっけ，'
+                #net
+                #generateConstraction((self.TABC[1],self.TABC[2],self.TABC[3]))
+            elif inputType == 300:
+                generatedString = 'うーん，どうなんだろうね...'
+        return (generatedString)
