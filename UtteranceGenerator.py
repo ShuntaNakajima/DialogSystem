@@ -17,7 +17,12 @@ class DialogSystem:
 
         返値 : (A, B, C) の情報が入ったタプル
         """
-        return data
+        if data == ['青葉','髪','きれい']:
+            generateddata = ['八神公','髪','きれい']
+        else:
+            generateddata = data
+        print ('GeneratedConstraction!:%s,%s,%s' % (generateddata[0],generateddata[1],generateddata[2]))
+        return generateddata
 
     def generateUtterance(self, data, inputType, hasTopic):
         print ("A:" + data[0] + ",B:" + data[1] + ",C:" + data[2])
@@ -45,27 +50,40 @@ class DialogSystem:
             else:
                 pass
             if Evaku and Evalu_ax and target:
+                print('確認じゃない？')
                 #全部ある
+                generatedString = 'Error'
             elif Evalu == None and Evalu_ax == None and target == None:
+                print('相槌じゃない？沈黙？')
                 #全部不足
+                generatedString = 'なに？'
             elif Evalu == None and Evalu_ax and target:
                 #AとBはある
+                generatedString = 'うん，'
             elif Evalu == None:
                 if Evalu_ax == None:
-                    #Aだけがある
+                    pass
+                    #Aだけがある 花子？ -> よしこ (theme=アホガール,間違った性別=女,主人公)
                 else:
+                    pass
                     #Bだけがある
             elif Evalu_ax == None and target == None:
+                pass
                 #Cだけがある
             elif Evaku_ax:
+                pass
                 #CとBはある
             elif target:
+                pass
                 #CとAはある
             generatedString = ''
         elif inputType == 300:
             generatedString = 'わかりません'
+            #net
         elif inputType == 400:
             if target == None:
                 pass
-            generatedString = '私も%sの%sは%sだと思います！' % (target,Evalu_ax,Evalu)
+            generateddata = self.generateConstraction(data)
+            generatedString = '%sの%sとかも%sだしね〜' % (generateddata[0],generateddata[1],generateddata[2])
+            #net(対比)やがみこうの髪とかも，綺麗だしね
         return (generatedString)
