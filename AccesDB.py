@@ -1,6 +1,4 @@
-import time
 import pyrebase
-import json
 
 class AccessToDataBase:
     #ジャンル トピック プロパティー プレディケイと
@@ -15,19 +13,8 @@ class AccessToDataBase:
     self.db = self.firebase.database()
   def updateDB(self,genre):
     #do something
-    #self.db.child("NewGame").child("涼風青葉").child('目').set(('青','小さい'))
+    self.db.child("NewGame").child("八神コウ").child('目').set(('黄色','小さい'))
     pass
-  def getData(self,genre):
-     #1日以内にキャッシュされてたら再び取らない．
-    data = self.db.child(genre).get()
-    if data.val() == None:
-        self.updateDB(genre)
-    else:
-        last_update = self.db.child(genre).child('last-update').get()
-        if int(last_update) + 86400 <  time.time():
-            self.updateDB(genre)
-        else:
-            print('キャッシュが残ってますよ．（%s）秒前' % (time.time() - int(last_update)))
 
   def searchDB(self,genre,topic,proper,predicate):
     #DBを検索する.ジャンルは必須，
@@ -61,58 +48,37 @@ class AccessToDataBase:
     #  print(searchDB('NewGame!','aoba_suzukaze','eye',blue)) $  [eye:blue,small]
     #  print(searchDB('NewGame!','aoba_suzukaze','eye',red)) $  [eye:blue]
     if not genre:
-        print('Genre = none')
         return []
     if not topic:
-        print('Topic = none')
         result = []
         if proper and predicate:
             recivedData = self.db.child(genre).get()
-            #print(recivedData.val())
             for i in recivedData.val():
                 for j in recivedData.val()[i].keys():
                     if j == proper:
                         if predicate in recivedData.val()[i][j]:
                             result.append(i)
-                #if recivedData.val()[i][0] == proper
-                #print(recivedData.val()[i].keys())
-            #if predicate in recivedData.val().items():
-        #        for i in recivedData.val():
-    #                valList.append(i)
-        #        result = valList
-    #        else:
-    #            result = valList
             return result
         else:
             return []
     else:
-        print('else')
-        if proper and predicate:
-            pass
-        elif proper:
-            result = self.db.child(genre).child(topic).child(proper).get()
-            return result.val()
-        else:
+        trueResult = []
+        if predicate and not proper:
             result = self.db.child(genre).child(topic).get()
-            for i in result.key():
-
-                if predicate:
-                    for j in result[i].val():
-                        print(result[i].val())
-                        if j.val() == predicate:
-                            passok = bool(1)
-            if predicate:
-                print(passok)
-                if passok:
-                    return result.val()
-                else:
-                    return []
-            else:
-                return result.val()
+            for i in result.val():
+                for j in result.val()[i]:
+                    if j == predicate:
+                        trueResult.append(i)
+            return trueResult
+        else:
+            result = self.db.child(genre).child(topic).child(proper).get()
+            for i in result.val():
+                trueResult.append(i)
+            return trueResult
 
 
 
 ac = AccessToDataBase()
-print(ac.searchDB('NewGame','','目','青'))# $  [eye:blue,small]
+print(ac.searchDB('NewGame','八神コウ','','黄色'))# $  [eye:blue,small]
 #ac.updateDB('a')
 #ac.getData('test')
