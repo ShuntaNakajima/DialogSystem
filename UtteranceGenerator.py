@@ -13,7 +13,7 @@ class DialogSystem:
         #self.TABC = ['Topic','A','B','C']
         self.urlfinder = UrlName()
         self.accessDB = AccessToDataBase()
-        self.jpwnc = JapaneseWordNetCorpusReader('/Users/Takumi63/nltk_data/corpora/wordnet','/Users/Takumi63/nltk_data/corpora/wordnet/wnjpn-ok.tab')
+        self.jpwnc = JapaneseWordNetCorpusReader('/Users/shuntanakajima/nltk_data/corpora/wordnet','/Users/shuntanakajima/nltk_data/corpora/wordnet/wnjpn-ok.tab')
         self.preprocessor = preprocessor()
         self.dialog_state = "GenreDecide"
         self.knp = my_knp_utils()

@@ -10,13 +10,13 @@ class my_knp_utils:
         self.knp = KNP()
 
     # about input
-    def get_knp_result(self, sentence, id = "default"):
+    def get_knp_result(self, sentence, id = 0):
         r = self.knp.result(input_str=knp_job.main([{"text-id":id, "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result)
         for t in r.tag_list():
             print(t.repname)
         return r
 
-    def get_knp_results(self, sentences, id = "default"):
+    def get_knp_results(self, sentences, id = 0):
         return [self.knp.result(input_str=x.parsed_result) for x in knp_job.main([{"text-id":id, "text":x} for x in sentences], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj]
 
     def get_nodes_from_terminal(self, knp_tag):
