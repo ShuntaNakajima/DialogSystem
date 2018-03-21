@@ -12,6 +12,7 @@ class AccessToDataBase:
     self.firebase = pyrebase.initialize_app(self.config)
     self.db = self.firebase.database()
     self.input_text = ""
+    
   def updateDB(self,data):
     #do something
     element = self.db.child(data[0]).child(data[1]).child(data[2]).get().val()
@@ -27,14 +28,16 @@ class AccessToDataBase:
     if self.saved_text != message["data"]:
         self.input_text = message["data"]
         self.saved_text = self.input_text
+        
   def listen(self):
     self.saved_text = self.db.child("message-top").remove()
+    self.input_text = ""
     time.sleep(1)
     self.my_stream = self.db.child("message-top").stream(self.stream_handler)
     while self.input_text == "":
         time.sleep(.5)
     self.my_stream.close
-    print(self.input_text)
+    return self.input_text
     # do something
 
   def searchDB(self,genre,topic,proper,predicate):
@@ -99,7 +102,7 @@ class AccessToDataBase:
 
 
 
-ac = AccessToDataBase()
+#ac = AccessToDataBase()
 #valll = ac.db.child('NewGame!').get().val()
 #print(valll)
 #ac.db.child('NEWGAME!').set(valll)
@@ -107,4 +110,4 @@ ac = AccessToDataBase()
 #print(ac.searchDB('NewGame','涼風青葉','髪',''))# $  [eye:blue,small]
 #ac.updateDB(('NewGame','八神コウ','耳','緑'))
 #ac.getData('test')
-ac.listen()
+#ac.listen()

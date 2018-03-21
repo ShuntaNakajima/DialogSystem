@@ -33,4 +33,28 @@ if __name__ == '__main__':
     dia.preprocessor.GTPP[0] = ['NEWGAME!',None]
     dia.dialog_state = "a"
     #dia.preprocessor
+
+    #通信テスト
+    dia.output("こんにちは", url='http://192.168.11.14:8080')
+    
+    
+    print("======八神コウの髪は短い======")
     print(dia.main('八神コウの髪は短い'))
+
+    print("======八神コウの髪は短い======")
+    print(dia.main('八神コウの髪は短い'))
+
+    print("======八神コウの髪がさー======")
+    print(dia.main('八神コウの髪がさー'))
+
+    print("======八神コウって短いよね======")
+    print(dia.main('八神コウって短いよね'))
+
+    print("======八神コウってさー======")
+    print(dia.main('八神コウってさー'))
+
+    print("======髪の毛がさー======")
+    print(dia.main('髪の毛がさー'))
+
+    print("======短いよねー======")
+    print(dia.main('短いよねー'))
