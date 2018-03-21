@@ -2,6 +2,14 @@ import json
 from myknputils import *
 import BeautifulSoup
 
+def processData(result):
+    ts = result.tag_list()
+    for i in range(len(ts)):
+        
+
+
+
+
 propDictName = "propDict.dict"
 predDictName = "predDict.dict"
 urlListName = "url.list"
@@ -20,7 +28,6 @@ with open(urlListName) as urllfd:
     urlList = json.load(urllfd)
 
 knp = my_knp_utils()
-
 
 for url in urlList:
     r = requests.get(url)
@@ -41,7 +48,7 @@ for url in urlList:
     results = knp.get_knp_results(map(lambda x: x.get_text(), soup.find(id="main").find_all(p)))
     
     [
-        
+        processData(result)
     ]
         
         

@@ -3,26 +3,28 @@ from knp_utils import knp_job,models, KnpSubProcess
 from pyknp import KNP
 from bs4 import BeautifulSoup
 
-def counter():
-    i = 0
-    while True:
-        yield i
-        i+=1
 
 class my_knp_utils:
     def __init__(self):
         self.knp = KNP()
-        self.IDsetter = counter()
+        #self.IDsetter = counter()
+        self.__counter__ = 0
+        
+    def counter(self):
+        self.__counter__ += 1
+        return self.__counter__
+        
+
 
     # about input
     def get_knp_result(self, sentence, id = 0):
-        r = self.knp.result(input_str=knp_job.main([{"text-id":self.IDsetter.next(), "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result)
+        r = self.knp.result(input_str=knp_job.main([{"text-id":self.counter(), "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result)
         for t in r.tag_list():
             print(t.repname)
         return r
 
     def get_knp_results(self, sentences, id = 0):
-        return [self.knp.result(input_str=x.parsed_result) for x in knp_job.main([{"text-id":self.IDsetter.next(), "text":x} for x in sentences], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj]
+        return [self.knp.result(input_str=x.parsed_result) for x in knp_job.main([{"text-id":self.counter(), "text":x} for x in sentences], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj]
 
     def get_nodes_from_terminal(self, knp_tag):
         tags = []
