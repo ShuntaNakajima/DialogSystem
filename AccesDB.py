@@ -11,10 +11,16 @@ class AccessToDataBase:
           }
     self.firebase = pyrebase.initialize_app(self.config)
     self.db = self.firebase.database()
-  def updateDB(self,genre):
+  def updateDB(self,data):
     #do something
-    self.db.child("NEWGAME!").child("八神コウ").child('目').set(('黄色','小さい'))
-    pass
+    element = self.db.child(data[0]).child(data[1]).child(data[2]).get().val()
+    if isinstance(element, str):
+        element = [element,data[3]]
+    elif isinstance(element, list):
+        element.append(data[3])
+    else:
+        element = data[3]
+    self.db.child(data[0]).child(data[1]).child(data[2]).set(element)
 
   def searchDB(self,genre,topic,proper,predicate):
     print (genre,topic,proper,predicate)
@@ -80,6 +86,10 @@ class AccessToDataBase:
 
 
 #ac = AccessToDataBase()
+#valll = ac.db.child('NewGame!').get().val()
+#print(valll)
+#ac.db.child('NEWGAME!').set(valll)
+#print('s')
 #print(ac.searchDB('NewGame','涼風青葉','髪',''))# $  [eye:blue,small]
-#ac.updateDB('a')
+#ac.updateDB(('NewGame','八神コウ','耳','緑'))
 #ac.getData('test')
