@@ -85,7 +85,11 @@ class AccessToDataBase:
 
 
 
-ac = AccessToDataBase()
+#ac = AccessToDataBase()
+#valll = ac.db.child('NewGame!').get().val()
+#print(valll)
+#ac.db.child('NEWGAME!').set(valll)
+#print('s')
 #print(ac.searchDB('NewGame','涼風青葉','髪',''))# $  [eye:blue,small]
 #ac.updateDB(('NewGame','八神コウ','耳','緑'))
 #ac.getData('test')
