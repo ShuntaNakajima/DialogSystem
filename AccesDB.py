@@ -13,10 +13,11 @@ class AccessToDataBase:
     self.db = self.firebase.database()
   def updateDB(self,genre):
     #do something
-    self.db.child("NewGame").child("八神コウ").child('目').set(('黄色','小さい'))
+    self.db.child("NEWGAME!").child("八神コウ").child('目').set(('黄色','小さい'))
     pass
 
   def searchDB(self,genre,topic,proper,predicate):
+    print (genre,topic,proper,predicate)
     #DBを検索する.ジャンルは必須，
     #トピックがない場合には，プロパティーとプレディケイとが必要
     #ジャンルとトピックだけだと所得したデータの全てを返す
@@ -78,7 +79,7 @@ class AccessToDataBase:
 
 
 
-ac = AccessToDataBase()
-print(ac.searchDB('NewGame','涼風青葉','髪',''))# $  [eye:blue,small]
+#ac = AccessToDataBase()
+#print(ac.searchDB('NewGame','涼風青葉','髪',''))# $  [eye:blue,small]
 #ac.updateDB('a')
 #ac.getData('test')
