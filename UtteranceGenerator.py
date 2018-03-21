@@ -3,6 +3,7 @@ from pick_urlre import UrlName
 from AccesDB import AccessToDataBase
 from jwn_corpusreader import JapaneseWordNetCorpusReader
 from myknputils import *
+import requests, json
 
 class DialogSystem:
     """
@@ -13,10 +14,34 @@ class DialogSystem:
         #self.TABC = ['Topic','A','B','C']
         self.urlfinder = UrlName()
         self.accessDB = AccessToDataBase()
-        self.jpwnc = JapaneseWordNetCorpusReader('/Users/shuntanakajima/nltk_data/corpora/wordnet','/Users/shuntanakajima/nltk_data/corpora/wordnet/wnjpn-ok.tab')
+        try:
+            self.jpwnc = JapaneseWordNetCorpusReader('/Users/shuntanakajima/nltk_data/corpora/wordnet','/Users/shuntanakajima/nltk_data/corpora/wordnet/wnjpn-ok.tab')
+        except IOError:
+            self.jpwnc = JapaneseWordNetCorpusReader('/Users/Takumi63/nltk_data/corpora/wordnet','/Users/Takumi63/nltk_data/corpora/wordnet/wnjpn-ok.tab')
+            
         self.preprocessor = preprocessor()
         self.dialog_state = "GenreDecide"
         self.knp = my_knp_utils()
+
+        self.url = "127.0.0.1:8080/output"
+
+    def output(self, text, url=None):
+        if url is None:
+            url=self.url
+        r = requests.get(url,params={"output":text})
+        count = 0
+        while r.status_code != 200:
+            count += 1
+            r = requests.get(self.url,{"output":text})
+            if count > 5:
+                print("通信できません")
+                raise
+
+    def start(self):
+        while True:
+            input_text  = self.accesDB.listen()
+            output_text = self.main(input_text)
+            self.output(output_text)
 
     def main(self, sentence):
         if self.dialog_state == "GenreDecide":
@@ -48,8 +73,11 @@ class DialogSystem:
             self.preprocessor.GTPP[3] = None
 
         predicate, p = self.preprocessor.searchPredicate(result.tag_list())
-        if predicate is None:
-            self.preprocessor.GTPP[3] = None
+        if predicate is None:            
+            if _property is None and topic is None:
+                pass
+            else:
+                self.preprocessor.GTPP[3] = None
         else:
             self.preprocessor.GTPP[3] = (predicate.repname.split("/")[0], p)
 
@@ -57,6 +85,7 @@ class DialogSystem:
                                        _property.repname.split("/")[0] if _property else None,
                                        predicate.repname.split("/")[0] if predicate else None], self.preprocessor.getInputType(result))
 
+    
     def searchData(self,text):
         pass
     def generateConstraction(self, data):
@@ -110,7 +139,7 @@ class DialogSystem:
         Evalu_ax = data[1]
         Evalu = data[2]
         if inputType == 1000:
-            if self.preprocessor.GTPP[0][0] and self.preprocessor.GTPP[1][0] and self.preprocessor.GTPP[2][0] and self.preprocessor.GTPP[3][0]:
+            if self.preprocessor.GTPP[0] and self.preprocessor.GTPP[1] and self.preprocessor.GTPP[2] and self.preprocessor.GTPP[3]:
                 if data[0] or data[1] or data[2]:
                     contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
                     if contractionItem[4] == bool(1):
