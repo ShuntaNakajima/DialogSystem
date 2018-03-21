@@ -11,7 +11,10 @@ class my_knp_utils:
 
     # about input
     def get_knp_result(self, sentence, id = "default"):
-        return self.knp.result(input_str=knp_job.main([{"text-id":id, "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result)
+        r = self.knp.result(input_str=knp_job.main([{"text-id":id, "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result)
+        for t in r.tag_list():
+            print(t.repname)
+        return r
 
     def get_knp_results(self, sentences, id = "default"):
         return [self.knp.result(input_str=x.parsed_result) for x in knp_job.main([{"text-id":id, "text":x} for x in sentences], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj]
@@ -65,7 +68,8 @@ class preprocessor:
 
         # 属性データベース
         self.propertyDicts = {
-            "other" : {"髪": "other"}
+            "work"  : {},
+            "other" : {"髪": "all"}
         }
         """
         {
@@ -79,8 +83,8 @@ class preprocessor:
 
         # 述語データベース
         self.predicateDict = {
-            "黄色": "other",
-            "青": "other"
+            "短い": "all",
+            "長い": "all"
         }
         """
         {
@@ -98,22 +102,22 @@ class preprocessor:
     def search_topic_candidate(self, tagList):
         cand_list = []
         # ガ格, ガ格を修飾する名詞全てを候補
-        for i in range(1, len(tagList)+1):
-            kframe, index = self.util.get_kframe(tagList[-1*i], "ガ")
+        for t in tagList[::-1]:
+            kframe, index = self.util.get_kframe(t, "ガ")
             if kframe is None:
                 continue
             elif index is None:
                 continue
             else:
-                cand_list += [tagList[-1*i]]
-                for j in range(i+1, len(tagList)+1):
-                    mType = self.util.get_modify_type(tagList[-1*j])
+                cand_list += [t]
+                for t in self.util.get_nodes_from_terminal(tagList[index])[:-1]:
+                    mType = self.util.get_modify_type(t)
                     if mType == "ノ格":
                         # 固有名詞があれば検索の優先度をあげる
-                        if "NE" in  tagList[-1*j].features:
-                            cand_list =  [tagList[-1*j]] + cand_list
+                        if "NE" in  t.features:
+                            cand_list =  [t] + cand_list
                         else:
-                            cand_list += [tagList[-1*j]]
+                            cand_list += [t]
                     elif mType == "文節内":
                         pass
                     else:
@@ -123,6 +127,7 @@ class preprocessor:
 
     def search_topic(self, tagList):
         lst = self.search_topic_candidate(tagList)
+        print("candidate", lst)
         for word in lst:
             if self.isTopic(word):
                 return word
@@ -131,21 +136,21 @@ class preprocessor:
     def isTopic(self, tag):
         # dict check
         if self.GTPP[1] is not None:
-            if tag.repname in self.propertyDicts[self.GTPP[1][1]]:
+            if tag.repname.split("/")[0] in self.propertyDicts[self.GTPP[1][1]]:
                 return False
         else:
             for dicts in self.propertyDicts:
-                if tag.repname in dicts:
+                if tag.repname.split("/")[0] in dicts:
                     return False
 
-        if tag.repname in self.predicateDict:
+        if tag.repname.split("/")[0] in self.predicateDict:
             return False
 
 
         # use genre_page / pixiv only?
         for page in self.genrePages:
             soup = BeautifulSoup(page, 'lxml')
-            aTags = soup.find_all("a", text=re.compile(tag.repname))
+            aTags = soup.find_all("a", text=re.compile(tag.repname.split("/")[0]))
             for a in aTags:
                 # pixiv only
                 r = None
@@ -161,27 +166,29 @@ class preprocessor:
                 soup = BeautifulSoup(r, 'lxml')
                 cl = soup.find(id="breadcrumbs").find_all("a")
                 for c in cl[::-1]:
-                    if self.GTPP[0] in c.text:
+                    if self.GTPP[0][0] in c.text:
                         return True
                     else:
                         pass
 
         # search page
         r = None
-        url = "https://dic.pixiv.net/a/" + word
+        url = "https://dic.pixiv.net/a/" + tag.repname.split("/")[0]
+        print("url", url)
         if url in self.cashe:
             r = self.cashe[url]
         else:
-            _r = requests.get(url).text
+            _r = requests.get(url)
+            #print("respond", _r.status_code, _r.text)
             if _r.status_code == 200:
                 r = _r.text
                 self.cashe[url] = r
             else:
                 return False
-        soup = BeautifulSoup(r.text, 'lxml')
+        soup = BeautifulSoup(r, 'lxml')
         cl = soup.find(id="breadcrumbs").find_all("a")
         for c in cl[::-1]:
-            if self.GTPP[0] in c.text:
+            if self.GTPP[0][0] in c.text:
                 return True
         return False
 
@@ -192,32 +199,32 @@ class preprocessor:
             p, g = self.isProperty(tag)
             if p:
                 return (tag, p, g)
-        return None
+        return (None, None, None)
 
     def isProperty(self, tag):
         if self.GTPP[1] is not None:
-            if tag.repname in self.propertyDicts[self.GTPP[1][1]]:
-                return (self.propertyDicts[self.GTPP[1][1]][tag.repname], self.GTPP[1][1])
+            if tag.repname.split("/")[0] in self.propertyDicts[self.GTPP[1][1]]:
+                return (self.propertyDicts[self.GTPP[1][1]][tag.repname.split("/")[0]], self.GTPP[1][1])
         else:
-            if tag.repname in self.propertyDicts["work"]:
-                return self.propertyDicts["work"][tag.repname]
-        return False
+            if tag.repname.split("/")[0] in self.propertyDicts["work"]:
+                return self.propertyDicts["work"][tag.repname.split("/")[0]]
+        return (False, None)
 
 
 
-    def searchPredicate(self, tag):
+    def searchPredicate(self, tagList):
         for tag in tagList:
             p = self.isPredicate(tag)
             if p:
                 return (tag, p)
-        return None
+        return (None, None)
 
     def isPredicate(self, tag):
-        if tag.repname in self.predicateDict:
+        if tag.repname.split("/")[0] in self.predicateDict:
             if self.GTPP[2] is None:
-                return self.predicateDict[tag.repname]
-            elif self.GTPP[2][1] == self.predicateDict[tag.repname]:
-                return self.predicateDict[tag.repname]
+                return self.predicateDict[tag.repname.split("/")[0]]
+            elif self.GTPP[2][1] == self.predicateDict[tag.repname.split("/")[0]]:
+                return self.predicateDict[tag.repname.split("/")[0]]
         return False
 
     def getInputType(self, result):
@@ -226,8 +233,8 @@ class preprocessor:
             if pt in text:
                 return 100
         string = ""
-        for tags in result.tag_list():
-            string += tags.get_surface()
+        for tag in result.tag_list():
+            string += tag.get_surface()
         for pt in ["なに","なぜ","どれ" "どこ", "なんで", "どうして","だれ","誰","何の","なんの"]:
             if pt in string:
                 return 200

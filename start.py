@@ -21,8 +21,8 @@ def start():
     hastopic = input("")
     print ('topic')
     dia.theme = input("")
-    dia.theme = 'NewGame'
-    dia.TABC = ["NewGame","八神コウ","髪","短い"]
+    dia.theme = 'NEWGAME!'
+    dia.TABC = ["NEWGAME!","八神コウ","髪","短い"]
     data = ("八神コウ","髪","黄色")
     #result = dia.generateUtterance(data,int(inputtype),bool(hastopic))
     result = dia.generateUtterance(data,1000,bool(0))
@@ -30,7 +30,7 @@ def start():
 
 if __name__ == '__main__':
     #start()
-    dia.preprocessor.GTPP[0] = ['NewGame',None]
+    dia.preprocessor.GTPP[0] = ['NEWGAME!',None]
     dia.dialog_state = "a"
     #dia.preprocessor
-    dia.main('八神コウの髪は短い')
+    print(dia.main('八神コウの髪は短い'))

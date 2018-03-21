@@ -22,8 +22,8 @@ class AccessToDataBase:
         element = data[3]
     self.db.child(data[0]).child(data[1]).child(data[2]).set(element)
 
-
   def searchDB(self,genre,topic,proper,predicate):
+    print (genre,topic,proper,predicate)
     #DBを検索する.ジャンルは必須，
     #トピックがない場合には，プロパティーとプレディケイとが必要
     #ジャンルとトピックだけだと所得したデータの全てを返す
