@@ -1,4 +1,8 @@
 import string
+from pick_urlre import UrlName
+from AccesDB import AccessToDataBase
+from jwn_corpusreader import JapaneseWordNetCorpusReader
+from myknputils import *
 
 class DialogSystem:
     """
@@ -6,10 +10,52 @@ class DialogSystem:
     """
     def __init__(self):
         self.theme = 'NewGame'
-        self.TABC = ['Topic','A','B','C']
-        #with open("resource/ahalist.yml") as file:
-        #    self.ahalist = yaml.load(file)
-        #print (self.ahalist[0])
+        #self.TABC = ['Topic','A','B','C']
+        self.urlfinder = UrlName()
+        self.accessDB = AccessToDataBase()
+        self.jpwnc = JapaneseWordNetCorpusReader('/Users/shuntanakajima/nltk_data/corpora/wordnet','/Users/shuntanakajima/nltk_data/corpora/wordnet/wnjpn-ok.tab')
+        self.preprocessor = preprocessor()
+        self.dialog_state = "GenreDecide"
+        self.knp = my_knp_utils()
+
+    def main(self, sentence):
+        if self.dialog_state == "GenreDecide":
+            return self.genreDeicdeDialog(sentence)
+
+        result = self.knp.get_knp_result(self.preprocessor.incompleteSentence + sentence)
+
+        topic = self.preprocessor.search_topic(result.tag_list())
+
+        if topic is None:
+            if self.preprocessor.GTPP[1] is None:
+                self.preprocessor.GTPP[2] = None
+                self.preprocessor.GTPP[3] = None
+            else:
+                pass
+        else:
+            self.preprocessor.GTPP[1] = (topic.repname, "other")
+            self.preprocessor.GTPP[2] = None
+            self.preprocessor.GTPP[3] = None
+
+        _property, p, g = self.preprocessor.searchProperty(result.tag_list())
+        if _property is None:
+            if self.preprocessor.GTPP[2] is None:
+                self.preprocessor.GTPP[3] = None
+        else:
+            if g == "work":
+                self.preprocessor.GTPP[1] = (self.preprocessor.GTPP[0], "work")
+            self.preprocessor.GTPP[2] = (_property.repname, "all")
+            self.preprocessor.GTPP[3] = None
+
+        predicate, p = self.preprocessor.searchPredicate(result.tag_list())
+        if predicate is None:
+            self.preprocessor.GTPP[3] = None
+        else:
+            self.preprocessor.GTPP[3] = (predicate.repname, p)
+
+        return self.generateUtterance([topic.repname if topic else None,
+                                       _property.repname if _property else None,
+                                       predicate.repname if predicate else None], self.preprocessor.getInputType(result.tag_list()))
 
     def searchData(self,text):
         pass
@@ -19,16 +65,39 @@ class DialogSystem:
 
         返値 : (A, B, C) の情報が入ったタプル
         """
-        if data == ('青葉','髪','きれい'):
-            generateddata = ('八神公','髪','きれい',bool(1))
+        returndata = self.urlfinder.find_url(data[0])
+        if data[0] and (data[1] or data[2]):
+            if not data[1] and data[2]:
+                results = self.accessDB.searchDB(self.theme,returndata,"",data[2])
+                generateddata = (self.theme,returndata,data[1],result[0],bool(1))
+            else:
+                print((self.theme,returndata,data[1],""))
+                results = self.accessDB.searchDB(self.theme,returndata,data[1],"")
+                print(results)
+                maxsimirary = ''
+                for result in results:
+                    print(result)
+                    simirary = self.jpwnc.calcSimilarity(data[2],result)
+                    print(simirary)
+                    if not maxsimirary:
+                        maxsimirary = float(simirary[0])
+                        maxsimirary_word = result
+                    elif float(simirary[0]) > float(maxsimirary):
+                        maxsimirary = simirary[0]
+                        maxsimirary_word = result
+                generateddata = (self.theme,returndata,data[1],maxsimirary_word,bool(1))
         else:
             generateddata = data + (bool(0))
+    #    if data == ('青葉','髪','きれい'):
+    #        generateddata = ('八神公','髪','きれい',bool(1))
+    #    else:
+    #        generateddata = data + (bool(0))
         print ('GeneratedConstraction!:%s,%s,%s' % (generateddata[0],generateddata[1],generateddata[2]))
         return generateddata
 
     def generateUtterance(self, data, inputType, hasTopic):
         print ("A:" + data[0] + ",B:" + data[1] + ",C:" + data[2])
-        print (self.TABC)
+        print (self.preprocessor.GTPP)
         """
         発話を生成する
 
@@ -41,18 +110,18 @@ class DialogSystem:
         Evalu_ax = data[1]
         Evalu = data[2]
         if inputType == 1000:
-            if self.TABC[0] and self.TABC[1] and self.TABC[2] and self.TABC[3]:
+            if self.preprocessor.GTPP[0][0] and self.preprocessor.GTPP[1][0] and self.preprocessor.GTPP[2][0] and self.preprocessor.GTPP[3][0]:
                 if data[0] or data[1] or data[2]:
-                    contractionItem = self.generateConstraction((self.TABC[1],self.TABC[2],self.TABC[3]))
+                    contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
                     if contractionItem[4] == bool(1):
-                        generatedString = 'あー，%sの%sが%sみたいにね' % (contractionItem[0],contractionItem[1],contractionItem[2],contractionItem[3])
+                        generatedString = 'あー，%sの%sが%sみたいにね' % (contractionItem[0][0],contractionItem[1][0],contractionItem[2][0],contractionItem[3][0])
                     else:
                         generatedString = 'たしかに'
                 else:
                     #話題を変えましょう
-                    contractionItem = self.generateConstraction((self.TABC[1],self.TABC[2],self.TABC[3]))
+                    contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
                     if contractionItem[4] == bool(1):
-                        generatedString = 'うーん，%sの%sとか%sだけどね' % (contractionItem[0],contractionItem[1],contractionItem[2],contractionItem[3])
+                        generatedString = 'うーん，%sの%sとか%sだけどね' % (contractionItem[0][0],contractionItem[1][0],contractionItem[2][0],contractionItem[3][0])
                     else:
                         generatedString = 'たしかに'#ここどうしよう.....
             else:
@@ -64,7 +133,7 @@ class DialogSystem:
             elif inputType == 200:
                 generatedString = 'なんでだっけ，'
                 #net
-                #generateConstraction((self.TABC[1],self.TABC[2],self.TABC[3]))
+                #generateConstraction((self.preprocessor.GTPP[1],self.preprocessor.GTPP[2],self.preprocessor.GTPP[3]))
             elif inputType == 300:
                 generatedString = 'うーん，どうなんだろうね...'
         return (generatedString)

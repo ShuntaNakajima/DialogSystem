@@ -79,6 +79,6 @@ class AccessToDataBase:
 
 
 ac = AccessToDataBase()
-print(ac.searchDB('NewGame','八神コウ','','黄色'))# $  [eye:blue,small]
+print(ac.searchDB('NewGame','涼風青葉','髪',''))# $  [eye:blue,small]
 #ac.updateDB('a')
 #ac.getData('test')
