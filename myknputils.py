@@ -3,21 +3,26 @@ from knp_utils import knp_job,models, KnpSubProcess
 from pyknp import KNP
 from bs4 import BeautifulSoup
 
-
+def counter():
+    i = 0
+    while True:
+        yield i
+        i+=1
 
 class my_knp_utils:
     def __init__(self):
         self.knp = KNP()
+        self.IDsetter = counter()
 
     # about input
-    def get_knp_result(self, sentence, id = "default"):
-        r = self.knp.result(input_str=knp_job.main([{"text-id":id, "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result)
+    def get_knp_result(self, sentence, id = 0):
+        r = self.knp.result(input_str=knp_job.main([{"text-id":self.IDsetter.next(), "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result)
         for t in r.tag_list():
             print(t.repname)
         return r
 
-    def get_knp_results(self, sentences, id = "default"):
-        return [self.knp.result(input_str=x.parsed_result) for x in knp_job.main([{"text-id":id, "text":x} for x in sentences], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj]
+    def get_knp_results(self, sentences, id = 0):
+        return [self.knp.result(input_str=x.parsed_result) for x in knp_job.main([{"text-id":self.IDsetter.next(), "text":x} for x in sentences], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj]
 
     def get_nodes_from_terminal(self, knp_tag):
         tags = []
@@ -114,7 +119,7 @@ class preprocessor:
                     mType = self.util.get_modify_type(t)
                     if mType == "ノ格":
                         # 固有名詞があれば検索の優先度をあげる
-                        if "NE" in  t.features:
+                        if "固有" in  t.spec():
                             cand_list =  [t] + cand_list
                         else:
                             cand_list += [t]
@@ -123,7 +128,12 @@ class preprocessor:
                     else:
                         return cand_list
                 return cand_list
-        return None
+            
+        for t in tagList:
+            if "固有" in  t.spec():
+                return [t]
+
+        return []
 
     def search_topic(self, tagList):
         lst = self.search_topic_candidate(tagList)
@@ -229,7 +239,7 @@ class preprocessor:
 
     def getInputType(self, result):
         text = result.tag_list()[-1].get_surface()
-        for pt in ["よね", "でしょ", "もんね", "かね", "かな"]:
+        for pt in ["よね", "でしょ", "もんね", "かね", "かな", "じゃない"]:
             if pt in text:
                 return 100
         string = ""
