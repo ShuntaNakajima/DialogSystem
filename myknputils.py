@@ -170,16 +170,16 @@ class preprocessor:
         for page in self.genrePages:
             soup = BeautifulSoup(page, 'lxml')
             aTags = soup.find_all("a", text=re.compile(tag.repname.split("/")[0]))
-            for a in aTags:
+            for _a in aTags:
                 # pixiv only
                 r = None
-                if a.href in self.cashe:
-                    r = self.cashe[a.href]
+                if _a.get("href") in self.cashe:
+                    r = self.cashe[_a.get("href")]
                 else:
-                    _r = requests.get(a.href)
+                    _r = requests.get(_a.get("href"))
                     if _r.status_code == 200:
                         r = _r.text
-                        self.cashe[a.href] = r
+                        self.cashe[_a.get("href")] = r
                     else:
                         continue
                 soup = BeautifulSoup(r, 'lxml')
