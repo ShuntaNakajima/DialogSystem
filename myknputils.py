@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json, re, requests
 from knp_utils import knp_job,models, KnpSubProcess
 from pyknp import KNP

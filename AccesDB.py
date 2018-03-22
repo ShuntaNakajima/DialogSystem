@@ -1,3 +1,4 @@
+# coding: UTF-8
 import pyrebase
 import time
 class AccessToDataBase:
@@ -12,7 +13,7 @@ class AccessToDataBase:
     self.firebase = pyrebase.initialize_app(self.config)
     self.db = self.firebase.database()
     self.input_text = ""
-    
+
   def updateDB(self,data):
     #do something
     element = self.db.child(data[0]).child(data[1]).child(data[2]).get().val()
@@ -28,7 +29,7 @@ class AccessToDataBase:
     if self.saved_text != message["data"]:
         self.input_text = message["data"]
         self.saved_text = self.input_text
-        
+
   def listen(self):
     self.saved_text = self.db.child("message-top").remove()
     self.input_text = ""
