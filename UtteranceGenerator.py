@@ -103,18 +103,21 @@ class DialogSystem:
                 print((self.preprocessor.GTPP[0][0],returndata,data[1],""))
                 results = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],returndata,data[1],"")
                 print(results)
-                maxsimirary = ''
-                for result in results:
-                    print(result)
-                    simirary = self.jpwnc.calcSimilarity(data[2],result)
-                    print(simirary)
-                    if not maxsimirary:
-                        maxsimirary = float(simirary[0])
-                        maxsimirary_word = result
-                    elif float(simirary[0]) > float(maxsimirary):
-                        maxsimirary = simirary[0]
-                        maxsimirary_word = result
-                generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],maxsimirary_word,bool(1))
+                if results:
+                    maxsimirary = ''
+                    for result in results:
+                        print(result)
+                        simirary = self.jpwnc.calcSimilarity(data[2],result)
+                        print(simirary)
+                        if not maxsimirary:
+                            maxsimirary = float(simirary[0])
+                            maxsimirary_word = result
+                        elif float(simirary[0]) > float(maxsimirary):
+                            maxsimirary = simirary[0]
+                            maxsimirary_word = result
+                    generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],maxsimirary_word,bool(1))
+                else:
+                    generateddata = data + (bool(0))
         else:
             generateddata = data + (bool(0))
     #    if data == ('青葉','髪','きれい'):
@@ -152,15 +155,53 @@ class DialogSystem:
                     if contractionItem[4] == bool(1):
                         generatedString = 'うーん，%sの%sとか%sだけどね' % (contractionItem[1],contractionItem[2],contractionItem[3])
                     else:
-                        generatedString = 'たしかに'#ここどうしよう.....
+                        returndata = self.accesDB.searchDB(self.GPTT[0][0],'',self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0])
+                        next_theme = ''
+                        for i in returndata:
+                            if self.preprocessor.GTPP[1][0] is not i:
+                                next_theme = i
+                        if not next_theme:
+                            generatedString = 'そろそろ話題がなくなって来たなぁ'
+                        else:
+                            generatedString = '%sが%sといえば%sもそうじゃなかったっけ？' % (self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0],next_theme)
+                        #ここどうしよう.....
             else:
                 generatedString = 'うん,'
         else:
             if inputType == 100:
-                generatedString = 'あーそうだと思うよ'
+                if self.preprocessor.GTPP[0] and self.preprocessor.GTPP[1] and self.preprocessor.GTPP[2] and self.preprocessor.GTPP[3]:
+                    truedata = self.accesDB.searchDB(self.GPTT[0][0],self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],'')
+                    simirary = self.jpwnc.calcSimilarity(self.preprocessor.GTPP[3][0],truedata[3])
+                    if simirary > 0.2:
+                        if simirary > 0.4:
+                            generatedString = 'そうだとおもうよ'
+                        else:
+                            generatedString = 'え？%sじゃなっかったっけ' % truedata[3]
+                    else:
+                        generatedString = 'んーどうだっけ、忘れちゃった'
                 #net
             elif inputType == 200:
-                generatedString = 'なんでだっけ，'
+                total_object = 0
+                for dt in data:
+                    if dt:
+                        total_object = total_object + 1
+                if data[0] and data[1] and data[2]:
+                    generatedString = 'うーん、わからない，'
+                else:
+                    if data[0] and self.preprocessor.GTPP[2][0] and self.preprocessor.GTPP[3][0]:
+                        generatedString = 'ごめん、わからない、'
+                    if not data[0] and self.preprocessor.GTPP[1][0] is None:
+                        generatedString = 'だれの？'
+                    elif not data[0]:
+                        if self.preprocessor.GTPP[2][0] and self.preprocessor.GTPP[3][0]:
+                            generatedString = 'あー，たしかに%sだよね、なんでだろう' % self.preprocessor.GTPP[3][0]
+                        elif data[1]:
+                            dbdata = self.accesDB.searchDB(self,self.preprocessor.GTPP[1][0],data[1],data[2],"")
+                            generatedString = '%sだからじゃない？' % dbdata[0]
+                    else:
+                        generatedString = 'わからない'
+
+                #なんで涼風青葉の髪は長く鳴った
                 #net
                 #generateConstraction((self.preprocessor.GTPP[1],self.preprocessor.GTPP[2],self.preprocessor.GTPP[3]))
             elif inputType == 300:
