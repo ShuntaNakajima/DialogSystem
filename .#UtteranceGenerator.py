@@ -1,1 +1,0 @@
-Takumi63@myMac-TH.local.69420
