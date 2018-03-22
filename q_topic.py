@@ -16,7 +16,7 @@ class titleName:
         self.reply_n=str(["ない","いいえ","ううん"])
         self.state_counter = 0
 
-    def getUtterance(self, e):
+    def getUtterance(self, i):
 
         c = self.state_counter
         
