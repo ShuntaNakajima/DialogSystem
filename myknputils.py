@@ -9,16 +9,23 @@ class my_knp_utils:
         self.knp = KNP()
         #self.IDsetter = counter()
         self.__counter__ = 0
-        
+
     def counter(self):
         self.__counter__ += 1
         return self.__counter__
-        
+
 
 
     # about input
     def get_knp_result(self, sentence, id = 0):
-        r = self.knp.result(input_str=knp_job.main([{"text-id":self.counter(), "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result)
+        print('before: ' + sentence)
+        sentence = sentence.replace(' ', '')
+        sentence = sentence.replace('   ', '')
+        sentence = sentence.replace(' ', '')
+        print('after: ' + sentence)
+        g = input_str=knp_job.main([{"text-id":self.counter(), "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result
+        #print('after2: ' + g)
+        r = self.knp.result(g)
         for t in r.tag_list():
             print(t.repname)
         return r
@@ -130,7 +137,7 @@ class preprocessor:
                     else:
                         return cand_list
                 return cand_list
-            
+
         for t in tagList:
             if "固有" in  t.spec():
                 return [t]

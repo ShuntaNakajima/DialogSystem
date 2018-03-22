@@ -18,8 +18,8 @@ endpoint = 'https://api.apigw.smt.docomo.ne.jp/dialogue/v1/dialogue?APIKEY=REGIS
 url = endpoint.replace('REGISTER_KEY', KEY)
 
 #1回目の会話の入力
-#utt_content = ADB.listen()
-utt_content = input()
+utt_content = ADB.listen()
+#utt_content = input()
 
 payload = {'utt' : utt_content, 'context': ''}
 headers = {'Content-type': 'application/json'}
@@ -45,9 +45,9 @@ print(response)
 
 #2回目以降の会話(Ctrl+Cで終了)
 while True:
-    #utt_content = ADB.listen()
-    utt_content = input()
-    
+    utt_content = ADB.listen()
+    #utt_content = input()
+
     payload['utt'] = utt_content
     payload['context'] = data['context']
 

@@ -18,7 +18,7 @@ class DialogSystem:
             self.jpwnc = JapaneseWordNetCorpusReader('/Users/shuntanakajima/nltk_data/corpora/wordnet','/Users/shuntanakajima/nltk_data/corpora/wordnet/wnjpn-ok.tab')
         except IOError:
             self.jpwnc = JapaneseWordNetCorpusReader('/Users/Takumi63/nltk_data/corpora/wordnet','/Users/Takumi63/nltk_data/corpora/wordnet/wnjpn-ok.tab')
-            
+
         self.preprocessor = preprocessor()
         self.dialog_state = "GenreDecide"
         self.knp = my_knp_utils()
@@ -73,7 +73,7 @@ class DialogSystem:
             self.preprocessor.GTPP[3] = None
 
         predicate, p = self.preprocessor.searchPredicate(result.tag_list())
-        if predicate is None:            
+        if predicate is None:
             if _property is None and topic is None:
                 pass
             else:
@@ -85,7 +85,7 @@ class DialogSystem:
                                        _property.repname.split("/")[0] if _property else None,
                                        predicate.repname.split("/")[0] if predicate else None], self.preprocessor.getInputType(result))
 
-    
+
     def searchData(self,text):
         pass
     def generateConstraction(self, data):
