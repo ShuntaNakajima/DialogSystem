@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from UtteranceGenerator import DialogSystem
 from jwn_corpusreader import JapaneseWordNetCorpusReader
 dia = DialogSystem()
@@ -35,7 +36,7 @@ if __name__ == '__main__':
 
     dia.url = 'http://192.168.11.14:8080'
     dia.start()
-        
+
 
     #通信テスト
     dia.output('こんにちは、てるみんです。', url='http://192.168.11.14:8080')
