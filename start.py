@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from UtteranceGenerator import DialogSystem
 from jwn_corpusreader import JapaneseWordNetCorpusReader
 dia = DialogSystem()
@@ -34,11 +35,11 @@ if __name__ == '__main__':
     #dia.preprocessor
 
     dia.url = 'http://192.168.11.14:8080'
-    dia.start(debug = True)
+    dia.start(debug = Flase)
         
 
     #通信テスト
-    dia.output('そろそろいい時間です、ご飯を食べに行きましょう', url='http://192.168.11.14:8080')
+    dia.output('こんにちは、てるみんです。', url='http://192.168.11.14:8080')
 
 
     print("======八神コウの髪は短い======")

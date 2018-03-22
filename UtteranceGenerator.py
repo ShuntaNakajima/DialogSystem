@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import string
 from pick_urlre import UrlName
 from AccesDB import AccessToDataBase
@@ -29,7 +30,7 @@ class DialogSystem:
 
         self.genreDeicdeDialog = titleName()
 
-        
+
 
     def output(self, text, url=None):
         if url is None:

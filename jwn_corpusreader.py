@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from nltk.corpus.reader.wordnet import WordNetCorpusReader
 class JapaneseWordNetCorpusReader(WordNetCorpusReader):
     def __init__(self, root, filename):
