@@ -4,6 +4,7 @@ from AccesDB import AccessToDataBase
 from jwn_corpusreader import JapaneseWordNetCorpusReader
 from myknputils import *
 import requests, json
+from numpy.random import *
 
 class DialogSystem:
     """
@@ -130,6 +131,7 @@ class DialogSystem:
     def generateUtterance(self, data, inputType):
         print ("Topic", data[0], "Property", data[1], "Predicate", data[2])
         print (self.preprocessor.GTPP)
+        returnstr = []
         """
         発話を生成する
 
@@ -138,6 +140,9 @@ class DialogSystem:
         hasTopic  : Boolean, 作品内の固有表現(例:涼風青葉，など)があるかないか判定
         返値       : String
         """
+        def choose(mylist):
+            num = random.randint(0,len(mylist) - 1)
+            return mylist[num]
         target = data[0]
         Evalu_ax = data[1]
         Evalu = data[2]
@@ -146,7 +151,11 @@ class DialogSystem:
                 if data[0] or data[1] or data[2]:
                     contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
                     if contractionItem[4] == bool(1):
-                        generatedString = 'あー，%sの%sが%sみたいにね' % (contractionItem[1],contractionItem[2],contractionItem[3])
+                        num = random.randint(1,3)
+                        returnstr.append('あー，%sの%sが%sみたいにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+                        returnstr.append('%sの%sが%sみたいなかんじ？' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+                        returnstr.append('たとえば、%sの%sが、%sのようにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+                        generatedString = choose(returnstr)
                     else:
                         generatedString = 'たしかに'
                 else:
@@ -163,20 +172,28 @@ class DialogSystem:
                         if not next_theme:
                             generatedString = 'そろそろ話題がなくなって来たなぁ'
                         else:
-                            generatedString = '%sが%sといえば%sもそうじゃなかったっけ？' % (self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0],next_theme)
+                            returnstr.append('%sが%sといえば%sもそうじゃなかったっけ？' % (self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0],next_theme))
+                            returnstr.append('%sの%sも%sだった気がする！' % (next_theme,self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
+                            generatedString = choose(returnstr)
                         #ここどうしよう.....
             else:
-                generatedString = 'うん,'
+                returnstr.append('うん,')
+                returnstr.append('はい,')
+                generatedString = choose(returnstr)
         else:
             if inputType == 100:
                 if self.preprocessor.GTPP[0] and self.preprocessor.GTPP[1] and self.preprocessor.GTPP[2] and self.preprocessor.GTPP[3]:
                     truedata = self.accesDB.searchDB(self.GPTT[0][0],self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],'')
                     simirary = self.jpwnc.calcSimilarity(self.preprocessor.GTPP[3][0],truedata[3])
                     if simirary > 0.2:
-                        if simirary > 0.4:
-                            generatedString = 'そうだとおもうよ'
+                        if simirary > 0.3:
+                            returnstr.append('そうだとおもうよ')
+                            returnstr.append('あーそうだね')
+                            generatedString = choose(returnstr)
                         else:
-                            generatedString = 'え？%sじゃなっかったっけ' % truedata[3]
+                            returnstr.append('え？%sじゃなっかったっけ' % truedata[3])
+                            returnstr.append('%sじゃなくて%sじゃなっかったっけ' % (self.preprocessor.GTPP[3][0],truedata[3]))
+                            generatedString = choose(returnstr)
                     else:
                         generatedString = 'んーどうだっけ、忘れちゃった'
                 #net
@@ -190,7 +207,7 @@ class DialogSystem:
                 else:
                     if data[0] and self.preprocessor.GTPP[2][0] and self.preprocessor.GTPP[3][0]:
                         generatedString = 'ごめん、わからない、'
-                    if not data[0] and self.preprocessor.GTPP[1][0] is None:
+                    elif not data[0] and self.preprocessor.GTPP[1][0] is None:
                         generatedString = 'だれの？'
                     elif not data[0]:
                         if self.preprocessor.GTPP[2][0] and self.preprocessor.GTPP[3][0]:
@@ -205,5 +222,7 @@ class DialogSystem:
                 #net
                 #generateConstraction((self.preprocessor.GTPP[1],self.preprocessor.GTPP[2],self.preprocessor.GTPP[3]))
             elif inputType == 300:
-                generatedString = 'うーん，どうなんだろうね...'
+                returnstr.append('うーん，どうなんだろうね')
+                returnstr.append('なんでだろう、知らない')
+                generatedString = choose(returnstr)
         return (generatedString)
