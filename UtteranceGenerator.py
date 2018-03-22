@@ -39,8 +39,9 @@ class DialogSystem:
                 raise
 
     def start(self):
+        print ("======会話開始======")
         while True:
-            input_text  = self.accesDB.listen()
+            input_text  = self.accessDB.listen()
             output_text = self.main(input_text)
             self.output(output_text)
 

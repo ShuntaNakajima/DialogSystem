@@ -7,12 +7,6 @@ from pyknp import Jumanpp
 
 from urllib.parse import unquote
 
-urlList = [
-    "https://dic.pixiv.net/a/八神コウ",
-    "https://dic.pixiv.net/a/涼風青葉",
-    
-]
-
 
 #propDictName = "propDict.dict"
 #predDictName = "predDict.dict"
@@ -178,7 +172,7 @@ class dicMaker:
             
             _no_k   = no_k
             _ga_k   = ga_k
-            _adject = adject
+            _adject = adjecta
 
     def main(self, genreName):
         #with open(propDictName) as propfd:
@@ -187,11 +181,10 @@ class dicMaker:
         #    predDict = json.load(predfd)
         #with open(urlListName) as urllfd:
         #    urlList = json.load(urllfd)
-        pass
 
 #self.genre = genreName
 urlList = [
-    "https://dic.pixiv.net/a/八神コウ"
+    "https://dic.pixiv.net/a/"+genreName
 ]
 
 knp = my_knp_utils()
