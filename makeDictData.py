@@ -7,21 +7,6 @@ from pyknp import Jumanpp
 
 from urllib.parse import unquote
 
-urlList = [
-  "https://dic.pixiv.net/a/八神コウ",
-  "https://dic.pixiv.net/a/涼風青葉",
-  "https://dic.pixiv.net/a/滝本ひふみ",
-  "https://dic.pixiv.net/a/飯島ゆん",
-  "https://dic.pixiv.net/a/望月紅葉",
-  "https://dic.pixiv.net/a/篠田はじめ",
-  "https://dic.pixiv.net/a/遠山りん",
-  "https://dic.pixiv.net/a/桜ねね",
-  "https://dic.pixiv.net/a/阿波根うみこ",
-  "https://dic.pixiv.net/a/鳴海ツバメ",
-  "https://dic.pixiv.net/a/葉月しずく",
-  "https://dic.pixiv.net/a/星川ほたる"
-]
-
 
 #propDictName = "propDict.dict"
 #predDictName = "predDict.dict"
@@ -187,7 +172,7 @@ class dicMaker:
             
             _no_k   = no_k
             _ga_k   = ga_k
-            _adject = adject
+            _adject = adjecta
 
     def main(self, genreName):
         #with open(propDictName) as propfd:
@@ -196,9 +181,11 @@ class dicMaker:
         #    predDict = json.load(predfd)
         #with open(urlListName) as urllfd:
         #    urlList = json.load(urllfd)
-        pass
 
 #self.genre = genreName
+urlList = [
+    "https://dic.pixiv.net/a/"+genreName
+]
 
 knp = my_knp_utils()
 dm = dicMaker()
@@ -233,8 +220,6 @@ for url in urlList:
         t = t.strip()
         t = t.replace("（","(")
         t = t.replace("）",")")
-        t = t.replace("?", "？")
-        t = t.replace("!", "！")
         
         if len(t.split("。")) > 2:
             for __t in t.split("。")[:-1]:

@@ -5,6 +5,7 @@ from jwn_corpusreader import JapaneseWordNetCorpusReader
 from myknputils import *
 import requests, json
 from numpy.random import *
+from q_topic import titleName
 
 class DialogSystem:
     """
@@ -26,6 +27,10 @@ class DialogSystem:
 
         self.url = "127.0.0.1:8080/output"
 
+        self.genreDeicdeDialog = titleName()
+
+        
+
     def output(self, text, url=None):
         if url is None:
             url=self.url
@@ -39,14 +44,19 @@ class DialogSystem:
                 raise
 
     def start(self):
+        print ("======会話開始======")
         while True:
-            input_text  = self.accesDB.listen()
+            input_text  = self.accessDB.listen()
             output_text = self.main(input_text)
             self.output(output_text)
 
     def main(self, sentence):
         if self.dialog_state == "GenreDecide":
-            return self.genreDeicdeDialog(sentence)
+            output_text, title = self.genreDeicdeDialog.getUtterance(sentence)
+            if title:
+                self.preprocessor.GTPP[0] = (title, None)
+                self.dialog_state = "a"
+            return output_text
 
         result = self.knp.get_knp_result(self.preprocessor.incompleteSentence + sentence)
 

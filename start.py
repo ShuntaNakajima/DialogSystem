@@ -29,10 +29,13 @@ def start():
     print(result)
 
 if __name__ == '__main__':
-    #start()
     dia.preprocessor.GTPP[0] = ['NEWGAME!',None]
     dia.dialog_state = "a"
     #dia.preprocessor
+
+    dia.url = 'http://192.168.11.14:8080'
+    dia.start()
+        
 
     #通信テスト
     dia.output('こんにちは、てるみんです。', url='http://192.168.11.14:8080')
