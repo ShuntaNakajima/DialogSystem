@@ -40,7 +40,9 @@ class AccessToDataBase:
     self.my_stream.close
     return self.input_text
     # do something
-
+  def getData(self,genre,topic):
+      result = self.db.child(genre).child(topic).get()
+      return result
   def searchDB(self,genre,topic,proper,predicate):
     #DBを検索する.ジャンルは必須，
     #トピックがない場合には，プロパティーとプレディケイとが必要
