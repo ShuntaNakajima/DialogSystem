@@ -11,8 +11,8 @@ import unicodedata
 import string
 
 urlList = [
-  "https://dic.pixiv.net/a/八神コウ",
-  "https://dic.pixiv.net/a/涼風青葉",
+#  "https://dic.pixiv.net/a/八神コウ",
+#  "https://dic.pixiv.net/a/涼風青葉",
   "https://dic.pixiv.net/a/滝本ひふみ",
   "https://dic.pixiv.net/a/飯島ゆん",
   "https://dic.pixiv.net/a/望月紅葉",
@@ -60,9 +60,12 @@ class dicMaker:
         
     def getRepName(self, tag, tags):
         f = tag.features
+        print(f)
         if "Wikipediaエントリ" in f:
             return f["Wikipediaエントリ"]
-        elif re.split('[/?+]', f["正規化代表表記"])[1] in ["もの","こと","じ","ぶつ","とき","しゃ"]:
+        if "正規化代表表記" not in f:
+            return tags[tag.tag_id-1].get_surface()
+        if re.split('[/?+]', f["正規化代表表記"])[1] in ["もの","こと","じ","ぶつ","とき","しゃ"]:
             rpn =  re.split('[/?+]', f["正規化代表表記"])[0]
             if rpn == "物":
                 rpn = "もの"

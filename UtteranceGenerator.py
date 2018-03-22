@@ -34,6 +34,7 @@ class DialogSystem:
     def output(self, text, url=None):
         if url is None:
             url=self.url
+        
         r = requests.get(url,params={"output":text})
         count = 0
         while r.status_code != 200:
@@ -41,14 +42,21 @@ class DialogSystem:
             r = requests.get(self.url,{"output":text})
             if count > 5:
                 print("通信できません")
-                raise
+                raise        
 
-    def start(self):
+    def start(self, debug = False):
         print ("======会話開始======")
         while True:
-            input_text  = self.accessDB.listen()
+            if debug:
+                input_text  = input(">> ")               
+            else:
+                input_text  = self.accessDB.listen()
+
             output_text = self.main(input_text)
-            self.output(output_text)
+            if debug:
+                print(output_text)
+            else:
+                self.output(output_text)
 
     def main(self, sentence):
         if self.dialog_state == "GenreDecide":
@@ -150,8 +158,11 @@ class DialogSystem:
         hasTopic  : Boolean, 作品内の固有表現(例:涼風青葉，など)があるかないか判定
         返値       : String
         """
+
+        generatedString = "うんうん!"
+        
         def choose(mylist):
-            num = random.randint(0,len(mylist) - 1)
+            num = randint(0,len(mylist) - 1)
             return mylist[num]
         target = data[0]
         Evalu_ax = data[1]
@@ -161,7 +172,7 @@ class DialogSystem:
                 if data[0] or data[1] or data[2]:
                     contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
                     if contractionItem[4] == bool(1):
-                        num = random.randint(1,3)
+                        num = randint(1,3)
                         returnstr.append('あー，%sの%sが%sみたいにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
                         returnstr.append('%sの%sが%sみたいなかんじ？' % (contractionItem[1],contractionItem[2],contractionItem[3]))
                         returnstr.append('たとえば、%sの%sが、%sのようにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))

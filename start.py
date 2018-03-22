@@ -30,11 +30,11 @@ def start():
 
 if __name__ == '__main__':
     dia.preprocessor.GTPP[0] = ['NEWGAME!',None]
-    dia.dialog_state = "a"
+    #dia.dialog_state = "a"
     #dia.preprocessor
 
     dia.url = 'http://192.168.11.14:8080'
-    dia.start()
+    dia.start(debug = True)
         
 
     #通信テスト
