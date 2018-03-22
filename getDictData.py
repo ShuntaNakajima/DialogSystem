@@ -7,6 +7,9 @@ from pyknp import Jumanpp
 
 from urllib.parse import unquote
 
+import unicodedata
+import string
+
 urlList = [
   "https://dic.pixiv.net/a/八神コウ",
   "https://dic.pixiv.net/a/涼風青葉",
@@ -44,6 +47,16 @@ class dicMaker:
         self.jumanpp = Jumanpp()
 
         self.symbolReg = re.compile(r'^[!-~]+$')
+
+
+    def format_text(self, text):
+        text = unicodedata.normalize("NFKC", text)  # 全角記号をざっくり半角へ置換（でも不完全）
+        
+        # 記号を消し去るための魔法のテーブル作成
+        table = str.maketrans("", "", string.punctuation  + "・")
+        text = text.translate(table)
+
+        return text
         
     def getRepName(self, tag, tags):
         f = tag.features
@@ -88,11 +101,12 @@ class dicMaker:
                 rText += u
             else:
                 rText += mrph.midasi
+        #print (rText)
         return rText
         
         
     def processData(self, result, _topic):
-
+        
         __no_k = None
             
         _wo_k   = None
@@ -112,6 +126,8 @@ class dicMaker:
     
         ts = result.tag_list()
         for i in range(len(ts)):
+
+            #print(ts[i].get_surface())
             
             f = ts[i].features
 
@@ -225,16 +241,20 @@ for url in urlList:
 
     dm.gatherUnique(soup.find(id="main"))
 
-    print("=== page ===")
+    #print("=== page ===")
     _strings = soup.find(id="main").get_text().split("\n")
+    #print(_strings)
     strings = []
     for t in _strings:
         # 前処理
         t = t.strip()
-        t = t.replace("（","(")
-        t = t.replace("）",")")
-        t = t.replace("?", "？")
-        t = t.replace("!", "！")
+        #t = t.replace("（","(")
+        #t = t.replace("）",")")
+        #t = t.replace("?", "？")
+        #t = t.replace("!", "！")
+        t = dm.format_text(t)
+        t = t.replace("\\","")
+        t = t.replace(" ","")        
         
         if len(t.split("。")) > 2:
             for __t in t.split("。")[:-1]:
@@ -254,7 +274,6 @@ for url in urlList:
             continue
         elif len(t) > 150:
             ts = t.split("、")
-            print (ts)
             tmp = ""
             for _t in ts:
                 tmp += _t
@@ -266,12 +285,14 @@ for url in urlList:
         else:
             strings.append(dm.replaceUniques(t))
 
+    #print(strings)
     results = knp.get_knp_results(strings)
-    print("=== knp done ===")
+    print("=== knp done ===",url)
     for x in results:
         dm.processData(x, url.split("/")[-1])
+    print("=== analysis done ===", url)
         
 print (dm.DB)
     
-with open("./" + dm.genre + ".dct", "w") as f:
+with open("./dic/" + dm.genre + ".dct", "w") as f:
     json.dump(dm.DB, f)
