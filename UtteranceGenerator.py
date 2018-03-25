@@ -6,6 +6,7 @@ from myknputils import *
 import requests, json
 from numpy.random import *
 from q_topic import titleName
+from copy import deepcopy
 
 class DialogSystem:
     """
@@ -27,7 +28,9 @@ class DialogSystem:
 
         self.url = "127.0.0.1:8080/output"
 
-        self.genreDeicdeDialog = titleName()
+        self.genreDeicdeDialog = titleName(10)
+
+        self.kibun = "comp" # or "symp"
 
         
 
@@ -41,7 +44,7 @@ class DialogSystem:
             count += 1
             r = requests.get(self.url,{"output":text})
             if count > 5:
-                print("通信できません")
+                # print("通信できません")
                 raise        
 
     def start(self, debug = False):
@@ -63,12 +66,15 @@ class DialogSystem:
             output_text, title = self.genreDeicdeDialog.getUtterance(sentence)
             if title:
                 self.preprocessor.GTPP[0] = (title, None)
+                self.preprocessor.setGenre(title)
                 self.dialog_state = "a"
             return output_text
 
         result = self.knp.get_knp_result(self.preprocessor.incompleteSentence + sentence)
 
-        topic = self.preprocessor.search_topic(result.tag_list())
+        ts = result.tag_list()
+        
+        topic, topic_tag = self.preprocessor.search_topic(ts)
 
         if topic is None:
             if self.preprocessor.GTPP[1] is None:
@@ -77,21 +83,28 @@ class DialogSystem:
             else:
                 pass
         else:
-            self.preprocessor.GTPP[1] = (topic.repname.split("/")[0], "other")
+            self.preprocessor.GTPP[1] = (topic, "other")
             self.preprocessor.GTPP[2] = None
             self.preprocessor.GTPP[3] = None
+            ts.remove(topic_tag)
 
-        _property, p, g = self.preprocessor.searchProperty(result.tag_list())
+        
+
+        _property, p, g = self.preprocessor.searchProperty(ts)
         if _property is None:
             if self.preprocessor.GTPP[2] is None:
                 self.preprocessor.GTPP[3] = None
         else:
             if g == "work":
                 self.preprocessor.GTPP[1] = (self.preprocessor.GTPP[0], "work")
-            self.preprocessor.GTPP[2] = (_property.repname.split("/")[0], "all")
-            self.preprocessor.GTPP[3] = None
+            if self.preprocessor.GTPP[2] is None and self.preprocessor.GTPP[3] is not None:
+                self.preprocessor.GTPP[2] = (_property.repname.split("/")[0], "all")
+            else:
+                self.preprocessor.GTPP[2] = (_property.repname.split("/")[0], "all")
+                self.preprocessor.GTPP[3] = None
+            ts.remove(_property)
 
-        predicate, p = self.preprocessor.searchPredicate(result.tag_list())
+        predicate, p = self.preprocessor.searchPredicate(ts)
         if predicate is None:
             if _property is None and topic is None:
                 pass
@@ -100,7 +113,16 @@ class DialogSystem:
         else:
             self.preprocessor.GTPP[3] = (predicate.repname.split("/")[0], p)
 
-        return self.generateUtterance([topic.repname.split("/")[0] if topic else None,
+        if self.preprocessor.GTPP[1] is not None and self.preprocessor.GTPP[2] is None and self.preprocessor.GTPP[3] is not None:
+            result = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],self.preprocessor.GTPP[1][0],"",self.preprocessor.GTPP[3][0])
+            if result:
+                self.preprocessor.GTPP[2] = (result[-1], "all")
+                return self.generateUtterance([topic if topic else None,
+                                               result[-1],
+                                               predicate.repname.split("/")[0] if predicate else None], self.preprocessor.getInputType(result))
+                
+
+        return self.generateUtterance([topic if topic else None,
                                        _property.repname.split("/")[0] if _property else None,
                                        predicate.repname.split("/")[0] if predicate else None], self.preprocessor.getInputType(result))
 
@@ -115,19 +137,22 @@ class DialogSystem:
         """
         returndata = self.urlfinder.find_url(data[0])
         if data[0] and (data[1] or data[2]):
+                
             if not data[1] and data[2]:
-                results = self.accessDB.searchDB(self.GPTT[0][0],returndata,"",data[2])
-                generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],result[0],bool(1))
+                results = self.accessDB.searchDB(self.GTPP[0][0],returndata,"",data[2])
+                if type(results) is list:
+                    generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],result[0],bool(1))
+                elif type(results) is str:
+                    generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],result,bool(1))
             else:
-                print((self.preprocessor.GTPP[0][0],returndata,data[1],""))
+                #print((self.preprocessor.GTPP[0][0],returndata,data[1],""))
+                
                 results = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],returndata,data[1],"")
-                print(results)
+                
                 if results:
                     maxsimirary = ''
                     for result in results:
-                        print(result)
                         simirary = self.jpwnc.calcSimilarity(data[2],result)
-                        print(simirary)
                         if not maxsimirary:
                             maxsimirary = float(simirary[0])
                             maxsimirary_word = result
@@ -136,19 +161,19 @@ class DialogSystem:
                             maxsimirary_word = result
                     generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],maxsimirary_word,bool(1))
                 else:
-                    generateddata = data + (bool(0))
+                    generateddata = (self.preprocessor.GTPP[0][0],) + data + (bool(0),)
         else:
-            generateddata = data + (bool(0))
+            generateddata = (self.preprocessor.GTPP[0][0],) + data + (bool(0),)
     #    if data == ('青葉','髪','きれい'):
     #        generateddata = ('八神公','髪','きれい',bool(1))
     #    else:
     #        generateddata = data + (bool(0))
-        print ('GeneratedConstraction!:%s,%s,%s' % (generateddata[0],generateddata[1],generateddata[2]))
+        print ('GeneratedConstraction!:%s,%s,%s,%s' % (generateddata[0],generateddata[1],generateddata[2],generateddata[3]))
         return generateddata
 
     def generateUtterance(self, data, inputType):
-        print ("Topic", data[0], "Property", data[1], "Predicate", data[2])
-        print (self.preprocessor.GTPP)
+        print ("just before","Topic", data[0], "Property", data[1], "Predicate", data[2])
+        print ("until now", self.preprocessor.GTPP)
         returnstr = []
         """
         発話を生成する
@@ -160,7 +185,7 @@ class DialogSystem:
         """
 
         generatedString = "うんうん!"
-        
+
         def choose(mylist):
             num = randint(0,len(mylist) - 1)
             return mylist[num]
@@ -169,7 +194,26 @@ class DialogSystem:
         Evalu = data[2]
         if inputType == 1000:
             if self.preprocessor.GTPP[0] and self.preprocessor.GTPP[1] and self.preprocessor.GTPP[2] and self.preprocessor.GTPP[3]:
-                if data[0] or data[1] or data[2]:
+
+                if self.kibun == "comp":
+                    self.kibun = "symp"
+                    contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
+                    if contractionItem[4] == bool(1):
+                        #num = randint(1,3)
+                        #returnstr.append('あー，%sの%sが%sみたいにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+                        #returnstr.append('%sの%sが%sみたいなかんじ？' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+                        #returnstr.append('たとえば、%sの%sが、%sのようにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+                        generatedString = "確かに。でも、%sも%s%sよね" % (contractionItem[1],contractionItem[2],contractionItem[3])
+                        self.kibun = "symp"
+                    else:
+                        generatedString = 'たしかに'
+                elif self.kibun == "symp":
+                    self.kibun = "a"
+                    r = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0], "")
+                    if r:
+                        generatedString = "うんうん、%sよね" % (r[-1])
+                
+                elif data[0] or data[1] or data[2]:
                     contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
                     if contractionItem[4] == bool(1):
                         num = randint(1,3)
@@ -182,10 +226,10 @@ class DialogSystem:
                 else:
                     #話題を変えましょう
                     contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
-                    if contractionItem[4] == bool(1):
+                    if contractionItem[3] == bool(1):
                         generatedString = 'うーん，%sの%sとか%sだけどね' % (contractionItem[1],contractionItem[2],contractionItem[3])
                     else:
-                        returndata = self.accesDB.searchDB(self.GPTT[0][0],'',self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0])
+                        returndata = self.accessDB.searchDB(self.GTPP[0][0],'',self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0])
                         next_theme = ''
                         for i in returndata:
                             if self.preprocessor.GTPP[1][0] is not i:
@@ -197,6 +241,8 @@ class DialogSystem:
                             returnstr.append('%sの%sも%sだった気がする！' % (next_theme,self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
                             generatedString = choose(returnstr)
                         #ここどうしよう.....
+                self.preprocessor.GTPP[2] = None
+                self.preprocessor.GTPP[3] = None
             else:
                 returnstr.append('うん,')
                 returnstr.append('はい,')
@@ -204,16 +250,17 @@ class DialogSystem:
         else:
             if inputType == 100:
                 if self.preprocessor.GTPP[0] and self.preprocessor.GTPP[1] and self.preprocessor.GTPP[2] and self.preprocessor.GTPP[3]:
-                    truedata = self.accesDB.searchDB(self.GPTT[0][0],self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],'')
-                    simirary = self.jpwnc.calcSimilarity(self.preprocessor.GTPP[3][0],truedata[3])
+                    truedata = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],'')
+                    print (truedata)
+                    simWord, simirary = self.jpwnc.maxSimilaryWord(self.preprocessor.GTPP[3][0], truedata)
                     if simirary > 0.2:
                         if simirary > 0.3:
                             returnstr.append('そうだとおもうよ')
                             returnstr.append('あーそうだね')
                             generatedString = choose(returnstr)
                         else:
-                            returnstr.append('え？%sじゃなっかったっけ' % truedata[3])
-                            returnstr.append('%sじゃなくて%sじゃなっかったっけ' % (self.preprocessor.GTPP[3][0],truedata[3]))
+                            returnstr.append('え？%sじゃなっかったっけ' % simWord)
+                            returnstr.append('%sじゃなくて%sじゃなっかったっけ' % (self.preprocessor.GTPP[3][0],simWord))
                             generatedString = choose(returnstr)
                     else:
                         generatedString = 'んーどうだっけ、忘れちゃった'
@@ -234,7 +281,7 @@ class DialogSystem:
                         if self.preprocessor.GTPP[2][0] and self.preprocessor.GTPP[3][0]:
                             generatedString = 'あー，たしかに%sだよね、なんでだろう' % self.preprocessor.GTPP[3][0]
                         elif data[1]:
-                            dbdata = self.accesDB.searchDB(self,self.preprocessor.GTPP[1][0],data[1],data[2],"")
+                            dbdata = self.accessDB.searchDB(self,self.preprocessor.GTPP[1][0],data[1],data[2],"")
                             generatedString = '%sだからじゃない？' % dbdata[0]
                     else:
                         generatedString = 'わからない'

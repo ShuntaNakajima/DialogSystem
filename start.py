@@ -1,5 +1,7 @@
 from UtteranceGenerator import DialogSystem
 from jwn_corpusreader import JapaneseWordNetCorpusReader
+import argparse
+
 dia = DialogSystem()
 
 def start():
@@ -29,15 +31,33 @@ def start():
     print(result)
 
 if __name__ == '__main__':
-    dia.preprocessor.GTPP[0] = ['NEWGAME!',None]
-    #dia.dialog_state = "a"
-    #dia.preprocessor
 
-    dia.url = 'http://192.168.11.14:8080'
-    dia.start(debug = True)
-        
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument("url",
+                        help="url of the robot")
+    parser.add_argument("--debug",
+                        help="debug mode. executing CUI only",
+                        action="store_true")
+    parser.add_argument("--newgame",
+                        help="using prepared topic NEWGAME!",
+                        action="store_true")
+    parser.add_argument("--topic",
+                        help="set prepared topic")
+    
+    args = parser.parse_args()
 
-    #通信テスト
+    if args.topic:
+        dia.preprocessor.GTPP[0] = [args.topic,None]
+    elif args.newgame:
+        dia.preprocessor.GTPP[0] = ["NEWGAME!",None]
+    
+
+    dia.url = args.url
+    dia.start(debug = args.debug)
+
+    # 旧テスト群
+    # 通信テスト
     dia.output('そろそろいい時間です、ご飯を食べに行きましょう', url='http://192.168.11.14:8080')
 
 

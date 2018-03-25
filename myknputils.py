@@ -2,7 +2,7 @@ import json, re, requests
 from knp_utils import knp_job,models, KnpSubProcess
 from pyknp import KNP
 from bs4 import BeautifulSoup
-
+from AccesDB import AccessToDataBase
 
 class my_knp_utils:
     def __init__(self):
@@ -18,16 +18,17 @@ class my_knp_utils:
 
     # about input
     def get_knp_result(self, sentence, id = 0):
-        print('before: ' + sentence)
+        # print('before: ' + sentence)
         sentence = sentence.replace(' ', '')
         sentence = sentence.replace('   ', '')
         sentence = sentence.replace(' ', '')
-        print('after: ' + sentence)
+        # print('after: ' + sentence)
         g = input_str=knp_job.main([{"text-id":self.counter(), "text":sentence}], juman_command="jumanpp", knp_options="-tab -anaphora").seq_document_obj[0].parsed_result
         #print('after2: ' + g)
         r = self.knp.result(g)
         for t in r.tag_list():
-            print(t.repname)
+            pass
+            #print(t.repname)
         return r
 
     def get_knp_results(self, sentences, id = 0):
@@ -74,7 +75,8 @@ class preprocessor:
     def __init__(self):
         self.knp = KNP()
         self.util = my_knp_utils()
-        self.genrePages = []
+        self.db = AccessToDataBase()
+        self.uniques = ["八神コウ"]
         self.topicDict = {}
         self.incompleteSentence =""
 
@@ -83,7 +85,7 @@ class preprocessor:
         # 属性データベース
         self.propertyDicts = {
             "work"  : {},
-            "other" : {"髪": "all"}
+            "other" : {"髪": "all","目":"all","仕事":"all"}
         }
         """
         {
@@ -98,7 +100,12 @@ class preprocessor:
         # 述語データベース
         self.predicateDict = {
             "短い": "all",
-            "長い": "all"
+            "長い": "all",
+            "黄色": "all",
+            "青色": "all",
+            "黄": "all",
+            "青": "all",
+            "頑張っている":"all"
         }
         """
         {
@@ -111,10 +118,40 @@ class preprocessor:
         # webページキャッシュ
         self.cashe = {}
 
+    def checkUnique(self, text):
+        for u in self.uniques:
+            if len(text) > 1:
+                if text in u:
+                    return u
+        return False
+
+
+    def setGenre(self, genre):
+        result = self.db.getData(genre)
+        # print(result.val().items())
+        for topic, pp in result.val().items():
+            self.uniques.append(topic)
+            for k, v in pp.items():
+                if type(k) is list:
+                    for i in k:
+                        self.propertyDicts["other"][i] = "all"
+                else:
+                    self.propertyDicts["other"][k] = "all"
+                    
+                if type(v) is list:
+                    for i in v:
+                        self.predicateDict[i] = "all"
+                else:
+                    self.predicateDict[v] = "all"
+        del self.propertyDicts["other"]["青葉"]
+        del self.predicateDict["キャラ"]
+        print(self.propertyDicts, self.predicateDict)
 
     # about result
     def search_topic_candidate(self, tagList):
         cand_list = []
+
+        '''
         # ガ格, ガ格を修飾する名詞全てを候補
         for t in tagList[::-1]:
             kframe, index = self.util.get_kframe(t, "ガ")
@@ -144,15 +181,48 @@ class preprocessor:
 
         return []
 
+        '''
+
+        rList = []
+
+        for t in tagList:
+            text = t.repname.split("/")[0]
+            for u in self.uniques:
+                if len(text) > 1:
+                    if text in u:
+                        rList.append((t, u))
+                        continue
+            """
+            if "固有" in t.spec():
+                rList.append((t, t.repname.split("/")[0]))
+            """
+        return rList
+    
     def search_topic(self, tagList):
         lst = self.search_topic_candidate(tagList)
-        print("candidate", lst)
+        # print("candidate", lst)
         for word in lst:
-            if self.isTopic(word):
-                return word
-        return None
+            if self.isTopic(word[1]):
+                return (word[1], word[0])
+        return (None, None)
 
-    def isTopic(self, tag):
+    def isTopic(self, word):
+        if self.GTPP[1] is not None:
+            if word in self.propertyDicts[self.GTPP[1][1]]:
+                return False
+        else:
+            for dicts in self.propertyDicts:
+                if word in dicts:
+                    return False
+
+        if word in self.predicateDict:
+            return False
+
+        return True
+
+        
+        
+    def isTopicWithTag(self, tag):
         # dict check
         if self.GTPP[1] is not None:
             if tag.repname.split("/")[0] in self.propertyDicts[self.GTPP[1][1]]:
@@ -193,7 +263,7 @@ class preprocessor:
         # search page
         r = None
         url = "https://dic.pixiv.net/a/" + tag.repname.split("/")[0]
-        print("url", url)
+        # print("url", url)
         if url in self.cashe:
             r = self.cashe[url]
         else:
@@ -211,8 +281,6 @@ class preprocessor:
                 return True
         return False
 
-
-
     def searchProperty(self, tagList):
         for tag in tagList:
             p, g = self.isProperty(tag)
@@ -226,7 +294,7 @@ class preprocessor:
                 return (self.propertyDicts[self.GTPP[1][1]][tag.repname.split("/")[0]], self.GTPP[1][1])
         else:
             if tag.repname.split("/")[0] in self.propertyDicts["work"]:
-                return self.propertyDicts["work"][tag.repname.split("/")[0]]
+                return (self.propertyDicts["work"][tag.repname.split("/")[0]], "work")
         return (False, None)
 
 
@@ -246,8 +314,11 @@ class preprocessor:
                 return self.predicateDict[tag.repname.split("/")[0]]
         return False
 
+    
+
     def getInputType(self, result):
-        text = result.tag_list()[-1].get_surface()
+        return 1000
+        text = result
         for pt in ["よね", "でしょ", "もんね", "かね", "かな", "じゃない"]:
             if pt in text:
                 return 100
