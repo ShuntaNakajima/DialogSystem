@@ -29,7 +29,7 @@ class AccessToDataBase:
 
     _a = self.db.child(arg).get()
     return _a
-    
+
   def stream_handler(self,message):
     if self.saved_text != message["data"]:
         self.input_text = message["data"]
@@ -45,9 +45,9 @@ class AccessToDataBase:
     self.my_stream.close
     return self.input_text
     # do something
-  def getData(self,genre,topic):
-      result = self.db.child(genre).child(topic).get()
-      return result
+ #def getData(self,genre,topic):
+#      result = self.db.child(genre).child(topic).get()
+#      return result
   def searchDB(self,genre,topic,proper,predicate):
     #DBを検索する.ジャンルは必須，
     #トピックがない場合には，プロパティーとプレディケイとが必要
@@ -79,8 +79,8 @@ class AccessToDataBase:
     #  print(searchDB('NewGame!','','',blue)) $  []
     #  print(searchDB('NewGame!','aoba_suzukaze','eye',blue)) $  [eye:blue,small]
     #  print(searchDB('NewGame!','aoba_suzukaze','eye',red)) $  [eye:blue]
-    
-    # 
+
+    #
     try:
       if not genre:
         return []
