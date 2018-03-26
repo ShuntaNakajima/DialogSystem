@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 from myknputils import *
 from bs4 import BeautifulSoup
@@ -51,13 +52,13 @@ class dicMaker:
 
     def format_text(self, text):
         text = unicodedata.normalize("NFKC", text)  # 全角記号をざっくり半角へ置換（でも不完全）
-        
+
         # 記号を消し去るための魔法のテーブル作成
         table = str.maketrans("", "", string.punctuation  + "・")
         text = text.translate(table)
 
         return text
-        
+
     def getRepName(self, tag, tags):
         f = tag.features
         print(f)
@@ -79,7 +80,7 @@ class dicMaker:
 
     def gatherUnique(self, soup):
         for _a in soup.find_all("a"):
-            
+
             i = unquote(_a.get("href").split("/")[-1])
             if self.symbolReg.match(i):
                 continue
@@ -87,7 +88,7 @@ class dicMaker:
             if "固有" in r.spec():
                 self.uniques.append(i)
         print(self.uniques)
-                
+
     def checkUnique(self, text):
         for u in self.uniques:
             if len(text) > 1:
@@ -99,39 +100,39 @@ class dicMaker:
         rText = ""
         result = self.jumanpp.analysis(text)
         for mrph in result.mrph_list():
-            u = self.checkUnique(mrph.midasi) 
+            u = self.checkUnique(mrph.midasi)
             if u:
                 rText += u
             else:
                 rText += mrph.midasi
         #print (rText)
         return rText
-        
-        
+
+
     def processData(self, result, _topic):
-        
+
         __no_k = None
-            
+
         _wo_k   = None
         _ni_k   = None
         _no_k   = None
         _ga_k   = None
         _adject = None
-        
+
         wo_k = None
         ni_k = None
         no_k = None
         ga_k = None
         topic = None
         adject = None
-        
-    
-    
+
+
+
         ts = result.tag_list()
         for i in range(len(ts)):
 
             #print(ts[i].get_surface())
-            
+
             f = ts[i].features
 
             # 形容詞
@@ -139,7 +140,7 @@ class dicMaker:
                 adject = ts[i]
             else:
                 adject = None
-                
+
             # ノ格
             if "係" in f and "ノ格" in f["係"]:
                 if "固有" in ts[i].spec():
@@ -148,7 +149,7 @@ class dicMaker:
                     no_k = None
             else:
                 no_k = None
-                
+
             # 主題の有無 / ガ格
             if "解析格" in f and "ガ" in f["解析格"]:
                 if "ハ" in f and "固有" in ts[i].spec():
@@ -169,7 +170,7 @@ class dicMaker:
                 ni_k = ts[i]
             else:
                 ni_k = None
-                
+
             if "ヲ" in f:
                 wo_k = ts[i]
             else:
@@ -181,14 +182,14 @@ class dicMaker:
                     self.DB.append([self.genre] + [ self.getRepName(x, ts) for x in [topic, ts[i], _adject]])
                 else:
                     self.DB.append([self.genre, _topic] + [ self.getRepName(x, ts) for x in [ts[i], _adject]])
-                    
+
             elif __no_k:
                 if _ga_k or _ni_k or _wo_k :
                     if "体言" in f:
                         self.DB.append([self.genre] + [ self.getRepName(x, ts) for x in [__no_k, _ga_k or _ni_k or _wo_k , ts[i]]])
                     elif adject:
                         self.DB.append([self.genre] + [ self.getRepName(x, ts) for x in [__no_k, _ga_k or _ni_k or _wo_k , ts[i]]])
-                            
+
             elif _ga_k or _ni_k or _wo_k :
                 if "体言" in f:
                     if topic:
@@ -203,7 +204,7 @@ class dicMaker:
                         self.DB.append([self.genre, _topic] + [ self.getRepName(x, ts) for x in [_ga_k or _ni_k or _wo_k , ts[i]]])
 
             __no_k  = _no_k
-            
+
             _no_k   = no_k
             _ga_k   = ga_k
             _adject = adject
@@ -224,7 +225,7 @@ dm = dicMaker()
 
 for url in urlList:
     print("=== url: " + url + " ===")
-    
+
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'lxml')
 
@@ -257,8 +258,8 @@ for url in urlList:
         #t = t.replace("!", "！")
         t = dm.format_text(t)
         t = t.replace("\\","")
-        t = t.replace(" ","")        
-        
+        t = t.replace(" ","")
+
         if len(t.split("。")) > 2:
             for __t in t.split("。")[:-1]:
                 if len(__t) < 150:
@@ -294,8 +295,8 @@ for url in urlList:
     for x in results:
         dm.processData(x, url.split("/")[-1])
     print("=== analysis done ===", url)
-        
+
 print (dm.DB)
-    
+
 with open("./dic/" + dm.genre + ".dct", "w") as f:
     json.dump(dm.DB, f)

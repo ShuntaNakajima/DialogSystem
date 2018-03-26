@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from UtteranceGenerator import DialogSystem
 from jwn_corpusreader import JapaneseWordNetCorpusReader
 import argparse
