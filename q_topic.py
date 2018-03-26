@@ -9,16 +9,28 @@ import sys
 import lxml.html
 from numpy import *
 
+#from AccesDB import AccessToDataBase
+
 class titleName:
 
-    def __init__(self):
+    def __init__(self, state):
         self.reply_y=str(["うん","ある","はい"])
         self.reply_n=str(["ない","いいえ","ううん"])
-        self.state_counter = 0
+        self.state_counter = state
+        #self.db = AccessToDataBase()
 
     def getUtterance(self, i):
 
         c = self.state_counter
+
+        if c == 10:
+            self.state_counter = 11
+            q_first=["ニューゲームの話をしない？","ねえねえ、ニューゲーム知ってる？"]
+            rand=random.choice(q_first)
+            return (rand, None)
+
+        if c == 11:
+            return ("よかった。すごく面白いよね！どこが好き？", "NEWGAME!")
         
         if c == 0:
             self.state_counter = 1
@@ -42,16 +54,21 @@ class titleName:
                 result = self.find_article(i)
                 return ("じゃあ"+result+"の話をしよう！"+result+"の好きなところとか聞きたいな！", result)
 
-        else:
-            if c == 3:
-                #キャラクター名から作品名を聞く
+        elif c == 3:
+            #キャラクター名から作品名を聞く
+            self.state_counter = 4
+            q_first=["ああ、それ何のキャラクターだっけ？"]
+            rand=random.choice(q_first)
+            return (rand, None)
+        
+        elif c == 4:
+            result = self.find_article(i)
+            if result is None:
                 self.state_counter = 4
-                q_first=["ああ、それ何のキャラクターだっけ？"]
-                rand=random.choice(q_first)
-                return (rand, None)
+                return ("うーんごめん、よくわからないや。何かヒントとかない？", None)
             else:
-                result = self.find_article(i)
                 return ("じゃあ"+result+"の話をしよう！"+result+"の好きなところとか聞きたいな！", result)
+        
 
     def find_article(self, i):
         #https:
@@ -72,11 +89,11 @@ class titleName:
             st=str(t)
             a_point=st.find('div class="thumb"')
             print("target point==",a_point)
-
             if a_point==-1:
                 #検索結果がなかったら別のキーワードを問う
-                print("うーんごめん、よくわからないや。何かヒントとかない？")
-                i = input(">> ")
+                self.state_counter = 4
+                return "うーんごめん、よくわからないや。何かヒントとかない？"
+            
                 result = self.find_article(i)
                 a_title=result
                 return a_title

@@ -25,6 +25,11 @@ class AccessToDataBase:
         element = data[3]
     self.db.child(data[0]).child(data[1]).child(data[2]).set(element)
 
+  def getData(self, arg):
+
+    _a = self.db.child(arg).get()
+    return _a
+    
   def stream_handler(self,message):
     if self.saved_text != message["data"]:
         self.input_text = message["data"]
@@ -74,9 +79,12 @@ class AccessToDataBase:
     #  print(searchDB('NewGame!','','',blue)) $  []
     #  print(searchDB('NewGame!','aoba_suzukaze','eye',blue)) $  [eye:blue,small]
     #  print(searchDB('NewGame!','aoba_suzukaze','eye',red)) $  [eye:blue]
-    if not genre:
+    
+    # 
+    try:
+      if not genre:
         return []
-    if not topic:
+      if not topic:
         result = []
         if proper and predicate:
             recivedData = self.db.child(genre).get()
@@ -88,20 +96,27 @@ class AccessToDataBase:
             return result
         else:
             return []
-    else:
+      else:
         trueResult = []
         if predicate and not proper:
             result = self.db.child(genre).child(topic).get()
-            for i in result.val():
-                for j in result.val()[i]:
-                    if j == predicate:
-                        trueResult.append(i)
+            for k,v in result.val().items():
+                if type(v) is list and predicate in v:
+                  trueResult.append(k)
+                elif type(v) is str and predicate == v:
+                  trueResult.append(k)
             return trueResult
         else:
+            print(genre, topic, proper)
             result = self.db.child(genre).child(topic).child(proper).get()
+            print("search result", result)
+            if type(result.val()) is str:
+              return [result.val()]
             for i in result.val():
                 trueResult.append(i)
             return trueResult
+    except:
+      return []
 
 
 
