@@ -21,7 +21,7 @@ class DialogSystem:
         try:
             self.jpwnc = JapaneseWordNetCorpusReader('/Users/shuntanakajima/nltk_data/corpora/wordnet','/Users/shuntanakajima/nltk_data/corpora/wordnet/wnjpn-ok.tab')
         except IOError:
-            self.jpwnc = JapaneseWordNetCorpusReader('/Users/Takumi63/nltk_data/corpora/wordnet','/Users/Takumi63/nltk_data/corpora/wordnet/wnjpn-ok.tab')
+            self.jpwnc = JapaneseWordNetCorpusReader('/Users/shuntanakajima/nltk_data/corpora/wordnet','/Users/shuntanakajima/nltk_data/corpora/wordnet/wnjpn-ok.tab')
 
         self.preprocessor = preprocessor()
         self.dialog_state = "GenreDecide"
@@ -38,7 +38,7 @@ class DialogSystem:
     def output(self, text, url=None):
         if url is None:
             url=self.url
-        
+
         r = requests.get(url,params={"output":text})
         count = 0
         while r.status_code != 200:
@@ -46,13 +46,13 @@ class DialogSystem:
             r = requests.get(self.url,{"output":text})
             if count > 5:
                 # print("通信できません")
-                raise        
+                raise
 
     def start(self, debug = False):
         print ("======会話開始======")
         while True:
             if debug:
-                input_text  = input(">> ")               
+                input_text  = input(">> ")
             else:
                 input_text  = self.accessDB.listen()
 
@@ -74,7 +74,7 @@ class DialogSystem:
         result = self.knp.get_knp_result(self.preprocessor.incompleteSentence + sentence)
 
         ts = result.tag_list()
-        
+
         topic, topic_tag = self.preprocessor.search_topic(ts)
 
         if topic is None:
@@ -89,7 +89,7 @@ class DialogSystem:
             self.preprocessor.GTPP[3] = None
             ts.remove(topic_tag)
 
-        
+
 
         _property, p, g = self.preprocessor.searchProperty(ts)
         if _property is None:
@@ -121,7 +121,7 @@ class DialogSystem:
                 return self.generateUtterance([topic if topic else None,
                                                result[-1],
                                                predicate.repname.split("/")[0] if predicate else None], self.preprocessor.getInputType(result))
-                
+
 
         return self.generateUtterance([topic if topic else None,
                                        _property.repname.split("/")[0] if _property else None,
@@ -138,7 +138,7 @@ class DialogSystem:
         """
         returndata = self.urlfinder.find_url(data[0])
         if data[0] and (data[1] or data[2]):
-                
+
             if not data[1] and data[2]:
                 results = self.accessDB.searchDB(self.GTPP[0][0],returndata,"",data[2])
                 if type(results) is list:
@@ -147,9 +147,9 @@ class DialogSystem:
                     generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],result,bool(1))
             else:
                 #print((self.preprocessor.GTPP[0][0],returndata,data[1],""))
-                
+
                 results = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],returndata,data[1],"")
-                
+
                 if results:
                     maxsimirary = ''
                     for result in results:
@@ -213,7 +213,7 @@ class DialogSystem:
                     r = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0], "")
                     if r:
                         generatedString = "うんうん、%sよね" % (r[-1])
-                
+
                 elif data[0] or data[1] or data[2]:
                     contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
                     if contractionItem[4] == bool(1):
