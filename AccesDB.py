@@ -44,6 +44,15 @@ class AccessToDataBase:
         time.sleep(.5)
     self.my_stream.close
     return self.input_text
+  def getTopiclist(self,genre):
+    if genre == '':
+      pass
+    else:
+      result = self.db.child('君の名は。').get()
+    lis = []
+    for i in result.val():
+        lis.append(i)
+    return lis
     # do something
  #def getData(self,genre,topic):
 #      result = self.db.child(genre).child(topic).get()

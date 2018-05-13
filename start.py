@@ -34,7 +34,7 @@ def start():
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    
+
     parser.add_argument("url",
                         help="url of the robot")
     parser.add_argument("--debug",
@@ -45,17 +45,19 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("--topic",
                         help="set prepared topic")
-    
+    parser.add_argument("--outputtext",
+                        help="out put with text only",
+                        action="store_true")
     args = parser.parse_args()
 
     if args.topic:
         dia.preprocessor.GTPP[0] = [args.topic,None]
     elif args.newgame:
         dia.preprocessor.GTPP[0] = ["NEWGAME!",None]
-    
+
 
     dia.url = args.url
-    dia.start(debug = args.debug)
+    dia.start(debug = args.debug,output_type = args.outputtext)
 
     # 旧テスト群
     # 通信テスト

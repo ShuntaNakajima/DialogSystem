@@ -138,14 +138,14 @@ class preprocessor:
                         self.propertyDicts["other"][i] = "all"
                 else:
                     self.propertyDicts["other"][k] = "all"
-                    
+
                 if type(v) is list:
                     for i in v:
                         self.predicateDict[i] = "all"
                 else:
                     self.predicateDict[v] = "all"
-        del self.propertyDicts["other"]["青葉"]
-        del self.predicateDict["キャラ"]
+        #del self.propertyDicts["other"]["青葉"]
+        #del self.predicateDict["キャラ"]
         print(self.propertyDicts, self.predicateDict)
 
     # about result
@@ -187,6 +187,7 @@ class preprocessor:
         rList = []
 
         for t in tagList:
+            print(t)
             text = t.repname.split("/")[0]
             for u in self.uniques:
                 if len(text) > 1:
@@ -198,13 +199,29 @@ class preprocessor:
                 rList.append((t, t.repname.split("/")[0]))
             """
         return rList
-    
+
     def search_topic(self, tagList):
         lst = self.search_topic_candidate(tagList)
         # print("candidate", lst)
+        print(lst)
         for word in lst:
+            print(word)
             if self.isTopic(word[1]):
                 return (word[1], word[0])
+        return (None, None)
+    def search_topic_by_sentence(self,tagList,sentence):
+        lst = self.search_topic_candidate(tagList)
+
+        charactor = ''
+        for i in self.uniques:
+            c = i.replace(' ','')
+            if c in sentence:
+                charactor = i
+        print(charactor)
+        for j in lst:
+            if j[1] == charactor:
+                if self.isTopic(j[1]):
+                    return (j[1], j[0])
         return (None, None)
 
     def isTopic(self, word):
@@ -221,8 +238,8 @@ class preprocessor:
 
         return True
 
-        
-        
+
+
     def isTopicWithTag(self, tag):
         # dict check
         if self.GTPP[1] is not None:
@@ -315,17 +332,20 @@ class preprocessor:
                 return self.predicateDict[tag.repname.split("/")[0]]
         return False
 
-    
+
 
     def getInputType(self, result):
-        return 1000
         text = result
-        for pt in ["よね", "でしょ", "もんね", "かね", "かな", "じゃない"]:
-            if pt in text:
-                return 100
         string = ""
-        for tag in result.tag_list():
-            string += tag.get_surface()
+        print(result)
+        if type(result) is list:
+            pass
+        else:
+            for tag in result.tag_list():
+                string += tag.get_surface()
+        for pt in ["よね", "でしょ", "もんね", "かね", "かな", "じゃない"]:
+            if pt in string:
+                return 100
         for pt in ["なに","なぜ","どれ" "どこ", "なんで", "どうして","だれ","誰","何の","なんの"]:
             if pt in string:
                 return 200
