@@ -7,6 +7,7 @@ import re
 import requests
 import sys
 import lxml.html
+from numpy.random import *
 from AccesDB import AccessToDataBase as AC
 class UrlName:
     def find_url(self,i):
@@ -65,9 +66,16 @@ class UrlName:
                 if par_i in c:
                     j.append(par_i)
         print(j)
-        article = j[0]
+        def choose(mylist):
+            num = randint(0,len(mylist) - 1)
+            return mylist[num]
+        article = choose(j)
         art_u = urlopen('https://dic.pixiv.net/a/'+article)
         a_read=str(art_u.read())
         print('https://dic.pixiv.net/a/'+article)
         a_title=urllib.parse.unquote(article)
+        for i in ac.getTopiclist('君の名は。'):
+            par_i=i.replace(' ','')
+            if a_title == par_i:
+                return i
         return a_title
