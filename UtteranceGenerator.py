@@ -153,41 +153,50 @@ class DialogSystem:
 
         返値 : (A, B, C) の情報が入ったタプル
         """
-        returndata = self.urlfinder.find_url(data[0])
+        j = self.urlfinder.find_url(data[0])
+
         if data[0] and (data[1] or data[2]):
-
-            if not data[1] and data[2]:
-                results = self.accessDB.searchDB(self.GTPP[0][0],returndata,"",data[2])
-                if type(results) is list:
-                    generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],result[0],bool(1))
-                elif type(results) is str:
-                    generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],result,bool(1))
-            else:
-                #print((self.preprocessor.GTPP[0][0],returndata,data[1],""))
-
-                results = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],returndata,data[1],"")
-                print('this is testing')
-                print(results)
-                if results:
-                    maxsimirary = ''
-                    for result in results:
-                        simirary = self.jpwnc.calcSimilarity(data[2],result)
-                        print(simirary)
-                        if not maxsimirary:
-                            if simirary[0] != None:
-                                maxsimirary = float(simirary[0])
-                                maxsimirary_word = result
-                        elif float(simirary[0]) > float(maxsimirary):
-                            maxsimirary = simirary[0]
-                            maxsimirary_word = result
-                    print('simirary-----------')
-                    print(data[2])
-                    print(maxsimirary_word)
-                    print(maxsimirary)
-                    print('simirary-----------')
-                    generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],maxsimirary_word,bool(1))
+            while True:
+                def choose(mylist):
+                    num = randint(0,len(mylist) - 1)
+                    return mylist[num]
+                returndata = choose(j)
+                j.remove(returndata)
+                if not data[1] and data[2]:
+                    results = self.accessDB.searchDB(self.GTPP[0][0],returndata,"",data[2])
+                    if type(results) is list:
+                        generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],result[0],bool(1))
+                    elif type(results) is str:
+                        generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],result,bool(1))
                 else:
-                    generateddata = (self.preprocessor.GTPP[0][0],) + data + (bool(0),)
+                    #print((self.preprocessor.GTPP[0][0],returndata,data[1],""))
+
+                    results = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],returndata,data[1],"")
+                    print('this is testing')
+                    print(results)
+                    if results:
+                        maxsimirary = ''
+                        for result in results:
+                            simirary = self.jpwnc.calcSimilarity(data[2],result)
+                            print(simirary)
+                            if not maxsimirary:
+                                if simirary[0] != None:
+                                    maxsimirary = float(simirary[0])
+                                    maxsimirary_word = result
+                            elif float(simirary[0]) > float(maxsimirary):
+                                maxsimirary = simirary[0]
+                                maxsimirary_word = result
+                        print('simirary-----------')
+                        print(data[2])
+                        print(maxsimirary_word)
+                        print(maxsimirary)
+                        print('simirary-----------')
+                        generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],maxsimirary_word,bool(1))
+                        break
+                    else:
+                        if j == []:
+                            generateddata = (self.preprocessor.GTPP[0][0],) + data + (bool(0),)
+                            break
         else:
             generateddata = (self.preprocessor.GTPP[0][0],) + data + (bool(0),)
     #    if data == ('青葉','髪','きれい'):
