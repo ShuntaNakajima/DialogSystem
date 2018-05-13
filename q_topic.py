@@ -25,26 +25,26 @@ class titleName:
 
         if c == 10:
             self.state_counter = 11
-            q_first=["ニューゲームの話をしない？","ねえねえ、ニューゲーム知ってる？"]
+            q_first=["君の名は。の話をしない？","ねえねえ、君の名は。知ってる？"]
             rand=random.choice(q_first)
             return (rand, None)
 
         if c == 11:
-            return ("よかった。すごく面白いよね！どこが好き？", "NEWGAME!")
-        
+            return ("よかった。すごく面白いよね！どこが好き？", "君の名は。")
+
         if c == 0:
             self.state_counter = 1
             q_first=["何か好きなアニメとかある？","何かオススメのアニメとかある？"]
             rand=random.choice(q_first)
             return (rand, None)
-        
+
         elif c == 1:
             if i in self.reply_y:
                 self.state_counter = 2
                 q_first=["タイトルはなんて言うやつ？","なんて名前なの？","何何？気になる！なんてやつ？"]
                 rand=random.choice(q_first)
                 return (rand, None)
-            
+
             elif i in self.reply_n:
                 self.state_counter = 3
                 q_first=["じゃあ何か好きなキャラクターを教えてくれる？","何か知ってるキャラクターの名前とか教えてよ"]
@@ -60,7 +60,7 @@ class titleName:
             q_first=["ああ、それ何のキャラクターだっけ？"]
             rand=random.choice(q_first)
             return (rand, None)
-        
+
         elif c == 4:
             result = self.find_article(i)
             if result is None:
@@ -68,14 +68,14 @@ class titleName:
                 return ("うーんごめん、よくわからないや。何かヒントとかない？", None)
             else:
                 return ("じゃあ"+result+"の話をしよう！"+result+"の好きなところとか聞きたいな！", result)
-        
+
 
     def find_article(self, i):
         #https:
         #//qiita.com/yagays/items/e59731b3930252b5f0c4
         par_i=urllib.parse.quote(i)
         print(par_i)
-        
+
         try:
             u = urlopen('https://dic.pixiv.net/a/'+par_i)
             t=u.read()
@@ -93,7 +93,7 @@ class titleName:
                 #検索結果がなかったら別のキーワードを問う
                 self.state_counter = 4
                 return "うーんごめん、よくわからないや。何かヒントとかない？"
-            
+
                 result = self.find_article(i)
                 a_title=result
                 return a_title
@@ -118,7 +118,7 @@ class titleName:
                 a_title=urllib.parse.unquote(a_tag)
         print(a_title + "が好きなんだ")
         return a_title
-    
+
 if __name__ == "__main__":
     dialog = titleName()
     while True:
@@ -128,4 +128,3 @@ if __name__ == "__main__":
         if title is not None:
             print("おわり")
             break
-        

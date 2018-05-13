@@ -7,11 +7,13 @@ import re
 import requests
 import sys
 import lxml.html
+from AccesDB import AccessToDataBase as AC
 class UrlName:
     def find_url(self,i):
         #https:
         #//qiita.com/yagays/items/e59731b3930252b5f0c4
         par_i=urllib.parse.quote(i)
+        par_i=par_i.replace('%20','')
         print(par_i)
 
         u = urlopen('https://dic.pixiv.net/a/'+par_i)
@@ -40,18 +42,30 @@ class UrlName:
 
         par_text=st[point-1:st_len]
         char_n=st_len
-        while char_n>point:
-            char_n=char_n-1
+        url_st='<a href="'
+        url_end='"><img'
+        texlist = par_text.split(url_st)
+        j = []
+        for i in texlist:
+            if url_end in i:
+                j.append(i)
+        n = []
+        for i in j:
+            tex = i.split(url_st)
+            spli = tex[0].split(url_end)
+            if '/a/' in spli[0]:
+                n.append(spli[0])
+        j = []
 
-            url_st='<a href="'
-            uspoint=par_text.find(url_st)
-            url_end='"><img'
-            uepoint=par_text.find(url_end)
-            print("url position==",uspoint,uepoint)
-            article=par_text[uspoint+12:uepoint]
-            print(article)
-            if uspoint !=-1:
-                break
+        ac = AC()
+        for i in ac.getTopiclist('君の名は。'):
+            par_i=urllib.parse.quote(i)
+            par_i=par_i.replace('%20','')
+            for c in n:
+                if par_i in c:
+                    j.append(par_i)
+        print(j)
+        article = j[0]
         art_u = urlopen('https://dic.pixiv.net/a/'+article)
         a_read=str(art_u.read())
         print('https://dic.pixiv.net/a/'+article)

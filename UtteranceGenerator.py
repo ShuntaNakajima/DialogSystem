@@ -8,6 +8,7 @@ import requests, json
 from numpy.random import *
 from q_topic import titleName
 from copy import deepcopy
+from writelog import writeLog
 
 class DialogSystem:
     """
@@ -19,7 +20,7 @@ class DialogSystem:
         self.urlfinder = UrlName()
         self.accessDB = AccessToDataBase()
         try:
-            self.jpwnc = JapaneseWordNetCorpusReader('/Users/shuntanakajima/nltk_data/corpora/wordnet','/Users/shuntanakajima/nltk_data/corpora/wordnet/wnjpn-ok.tab')
+            self.jpwnc = JapaneseWordNetCorpusReader()
         except IOError:
             self.jpwnc = JapaneseWordNetCorpusReader('/Users/shuntanakajima/nltk_data/corpora/wordnet','/Users/shuntanakajima/nltk_data/corpora/wordnet/wnjpn-ok.tab')
 
@@ -32,31 +33,39 @@ class DialogSystem:
         self.genreDeicdeDialog = titleName(10)
 
         self.kibun = "comp" # or "symp"
-
+        self.writelog = writeLog()
 
 
     def output(self, text, url=None):
-        if url is None:
-            url=self.url
 
-        r = requests.get(url,params={"output":text})
-        count = 0
-        while r.status_code != 200:
-            count += 1
-            r = requests.get(self.url,{"output":text})
-            if count > 5:
-                # print("通信できません")
-                raise
+        if self.output_type:
+            print(text)
+        else:
+            if url is None:
+                url=self.url
+            print(text)
+            r = requests.get(url,params={"query":text})
+            count = 0
+            while r.status_code != 200:
+                count += 1
+                r = requests.get(self.url,{"query":text})
+                if count > 5:
+                    # print("通信できません")
+                    raise
 
-    def start(self, debug = False):
+    def start(self, debug = False,output_type = False):
         print ("======会話開始======")
+        self.output_type = output_type
         while True:
             if debug:
                 input_text  = input(">> ")
             else:
                 input_text  = self.accessDB.listen()
-
             output_text = self.main(input_text)
+            #--------------ログの書き出し-----------=---------
+            self.writelog.writeLog('user',input_text)
+            self.writelog.writeLog('system',output_text)
+            #----------------------------------------------
             if debug:
                 print(output_text)
             else:
@@ -75,20 +84,28 @@ class DialogSystem:
 
         ts = result.tag_list()
 
-        topic, topic_tag = self.preprocessor.search_topic(ts)
+        #topic, topic_tag = self.preprocessor.search_topic(ts)
+        if self.preprocessor.GTPP[2] is (None,None) or self.preprocessor.GTPP[2] is None:
+            topic, topic_tag = self.preprocessor.search_topic_by_sentence(ts,sentence)
 
-        if topic is None:
+            if topic is None:
+                if self.preprocessor.GTPP[1] is None:
+                    self.preprocessor.GTPP[2] = None
+                    self.preprocessor.GTPP[3] = None
+                else:
+                    pass
+            else:
+                self.preprocessor.GTPP[1] = (topic, "other")
+                self.preprocessor.GTPP[2] = None
+                self.preprocessor.GTPP[3] = None
+                ts.remove(topic_tag)
+        else:
+            topic = None
             if self.preprocessor.GTPP[1] is None:
                 self.preprocessor.GTPP[2] = None
                 self.preprocessor.GTPP[3] = None
             else:
                 pass
-        else:
-            self.preprocessor.GTPP[1] = (topic, "other")
-            self.preprocessor.GTPP[2] = None
-            self.preprocessor.GTPP[3] = None
-            ts.remove(topic_tag)
-
 
 
         _property, p, g = self.preprocessor.searchProperty(ts)
@@ -149,17 +166,25 @@ class DialogSystem:
                 #print((self.preprocessor.GTPP[0][0],returndata,data[1],""))
 
                 results = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],returndata,data[1],"")
-
+                print('this is testing')
+                print(results)
                 if results:
                     maxsimirary = ''
                     for result in results:
                         simirary = self.jpwnc.calcSimilarity(data[2],result)
+                        print(simirary)
                         if not maxsimirary:
-                            maxsimirary = float(simirary[0])
-                            maxsimirary_word = result
+                            if simirary[0] != None:
+                                maxsimirary = float(simirary[0])
+                                maxsimirary_word = result
                         elif float(simirary[0]) > float(maxsimirary):
                             maxsimirary = simirary[0]
                             maxsimirary_word = result
+                    print('simirary-----------')
+                    print(data[2])
+                    print(maxsimirary_word)
+                    print(maxsimirary)
+                    print('simirary-----------')
                     generateddata = (self.preprocessor.GTPP[0][0],returndata,data[1],maxsimirary_word,bool(1))
                 else:
                     generateddata = (self.preprocessor.GTPP[0][0],) + data + (bool(0),)
@@ -230,7 +255,7 @@ class DialogSystem:
                     if contractionItem[3] == bool(1):
                         generatedString = 'うーん，%sの%sとか%sだけどね' % (contractionItem[1],contractionItem[2],contractionItem[3])
                     else:
-                        returndata = self.accessDB.searchDB(self.GTPP[0][0],'',self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0])
+                        returndata = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],'',self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0])
                         next_theme = ''
                         for i in returndata:
                             if self.preprocessor.GTPP[1][0] is not i:
@@ -253,16 +278,35 @@ class DialogSystem:
                 if self.preprocessor.GTPP[0] and self.preprocessor.GTPP[1] and self.preprocessor.GTPP[2] and self.preprocessor.GTPP[3]:
                     truedata = self.accessDB.searchDB(self.preprocessor.GTPP[0][0],self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],'')
                     print (truedata)
-                    simWord, simirary = self.jpwnc.maxSimilaryWord(self.preprocessor.GTPP[3][0], truedata)
-                    if simirary > 0.2:
-                        if simirary > 0.3:
-                            returnstr.append('そうだとおもうよ')
-                            returnstr.append('あーそうだね')
-                            generatedString = choose(returnstr)
+                    if truedata:
+                        maxsimirary = ''
+                        for result in truedata:
+                            print (result)
+                            simirary = self.jpwnc.calcSimilarity(data[2],result)
+                            print('------------simi----------')
+                            print(simirary)
+                            print('------------simiend----------')
+
+                            if simirary[0] == None:
+                                pass
+                            elif not maxsimirary:
+                                maxsimirary = float(simirary[0])
+                                maxsimirary_word = result
+                            elif float(simirary[0]) > float(maxsimirary):
+                                maxsimirary = simirary[0]
+                                maxsimirary_word = result
+                        print(maxsimirary)
+                        if maxsimirary > 0.06:
+                            if maxsimirary == 1:
+                                returnstr.append('そうだとおもうよ')
+                                returnstr.append('あーそうだね')
+                                generatedString = choose(returnstr)
+                            else:
+                                returnstr.append('え？%sじゃなっかったっけ' % maxsimirary_word)
+                                returnstr.append('%sじゃなくて%sじゃなっかったっけ' % (self.preprocessor.GTPP[3][0],maxsimirary_word))
+                                generatedString = choose(returnstr)
                         else:
-                            returnstr.append('え？%sじゃなっかったっけ' % simWord)
-                            returnstr.append('%sじゃなくて%sじゃなっかったっけ' % (self.preprocessor.GTPP[3][0],simWord))
-                            generatedString = choose(returnstr)
+                            generatedString = 'んーどうだっけ、忘れちゃった'
                     else:
                         generatedString = 'んーどうだっけ、忘れちゃった'
                 #net

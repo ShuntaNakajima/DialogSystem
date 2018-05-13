@@ -18,8 +18,8 @@ endpoint = 'https://api.apigw.smt.docomo.ne.jp/dialogue/v1/dialogue?APIKEY=REGIS
 url = endpoint.replace('REGISTER_KEY', KEY)
 
 #1回目の会話の入力
-utt_content = ADB.listen()
-#utt_content = input()
+#utt_content = ADB.listen()
+utt_content = input()
 
 payload = {'utt' : utt_content, 'context': ''}
 headers = {'Content-type': 'application/json'}
@@ -33,20 +33,15 @@ response = data['utt']
 context = data['context']
 
 #output
-r = requests.get(url2,params={"output":response})
+print(response)
 count = 0
-while r.status_code != 200:
-    count += 1
-    r = requests.get(self.url2,{"output":response})
-    if count > 5:
-        print("通信できません")
-        raise
+
 print(response)
 
 #2回目以降の会話(Ctrl+Cで終了)
 while True:
-    utt_content = ADB.listen()
-    #utt_content = input()
+    #utt_content = ADB.listen()
+    utt_content = input()
 
     payload['utt'] = utt_content
     payload['context'] = data['context']
@@ -56,14 +51,9 @@ while True:
 
     response = data['utt']
     context = data['context']
-
+    print(response)
     #output
-    r = requests.get(url2,params={"output":response})
+
     count = 0
-    while r.status_code != 200:
-        count += 1
-        r = requests.get(url2,{"output":response})
-        if count > 5:
-            print("通信できません")
-            raise
+
     print(response)
