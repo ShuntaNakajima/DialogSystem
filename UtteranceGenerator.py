@@ -220,7 +220,7 @@ class DialogSystem:
         Evalu = data[2]
         if inputType == 1000:
             if self.preprocessor.GTPP[0] and self.preprocessor.GTPP[1] and self.preprocessor.GTPP[2] and self.preprocessor.GTPP[3]:
-
+                self.kibun = "a"
                 if self.kibun == "comp":
                     self.kibun = "symp"
                     contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
