@@ -59,6 +59,16 @@ class UrlName:
         j = []
 
         ac = AC()
+
+        for i in ac.getTopiclist('君の名は。'):
+            par_i=urllib.parse.quote(i)
+            par_i=par_i.replace('%20','')
+            for c in n:
+                if par_i in c:
+                    j.append(i)
+        print(j)
+
+        '''
         for i in ac.getTopiclist('君の名は。'):
             par_i=urllib.parse.quote(i)
             par_i=par_i.replace('%20','')
@@ -66,10 +76,9 @@ class UrlName:
                 if par_i in c:
                     j.append(par_i)
         print(j)
-        def choose(mylist):
-            num = randint(0,len(mylist) - 1)
-            return mylist[num]
-        article = choose(j)
+        '''
+        #pixivから取ってきてるリンクだからリンクが切れることはないはず...
+        '''
         art_u = urlopen('https://dic.pixiv.net/a/'+article)
         a_read=str(art_u.read())
         print('https://dic.pixiv.net/a/'+article)
@@ -78,4 +87,6 @@ class UrlName:
             par_i=i.replace(' ','')
             if a_title == par_i:
                 return i
-        return a_title
+        '''
+        #return a_title
+        return j
