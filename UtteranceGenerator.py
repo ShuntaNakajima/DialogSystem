@@ -252,9 +252,15 @@ class DialogSystem:
                     contractionItem = self.generateConstraction((self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0]))
                     if contractionItem[4] == bool(1):
                         num = randint(1,3)
-                        returnstr.append('あー，%sの%sが%sみたいにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
-                        returnstr.append('%sの%sが%sみたいなかんじ？' % (contractionItem[1],contractionItem[2],contractionItem[3]))
-                        returnstr.append('たとえば、%sの%sが、%sのようにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+                        returnstr.append('たしかに%sだけどさ、%sのほうが%sでいいと思う' % (self.preprocessor.GTPP[3][0],contractionItem[1],contractionItem[3]))
+                        returnstr.append('%sの%sは%sはさそうだけど、%sは%sで良くない？' % (self.preprocessor.GTPP[1][0],self.preprocessor.GTPP[2][0],self.preprocessor.GTPP[3][0],contractionItem[1],contractionItem[3]))
+                        returnstr.append('でも、%sは%sだったよねー' % (contractionItem[1],contractionItem[3]))
+                        returnstr.append('%sも好きだよ、だけど%sな%sのほうが好きかなー' % (self.preprocessor.GTPP[2][0],contractionItem[3],contractionItem[1]))
+                        returnstr.append('うんうん、%sの%sも%sよね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+
+                        #returnstr.append('あー，%sの%sが%sみたいにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+                        #returnstr.append('%sの%sが%sみたいなかんじ？' % (contractionItem[1],contractionItem[2],contractionItem[3]))
+                        #returnstr.append('たとえば、%sの%sが、%sのようにね' % (contractionItem[1],contractionItem[2],contractionItem[3]))
                         generatedString = choose(returnstr)
                     else:
                         generatedString = 'たしかに'
@@ -341,7 +347,7 @@ class DialogSystem:
                         generatedString = 'わからない'
 
                 #なんで涼風青葉の髪は長く鳴った
-                #net
+                #ne t
                 #generateConstraction((self.preprocessor.GTPP[1],self.preprocessor.GTPP[2],self.preprocessor.GTPP[3]))
             elif inputType == 300:
                 returnstr.append('うーん，どうなんだろうね')
