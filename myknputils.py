@@ -77,7 +77,7 @@ class preprocessor:
         self.knp = KNP()
         self.util = my_knp_utils()
         self.db = AccessToDataBase()
-        self.uniques = ["八神コウ"]
+        self.uniques = []
         self.topicDict = {}
         self.incompleteSentence =""
 
@@ -131,7 +131,7 @@ class preprocessor:
         result = self.db.getData(genre)
         # print(result.val().items())
         for topic, pp in result.val().items():
-            self.uniques.append(topic)
+            self.uniques.append(topic.replace(" ",""))
             for k, v in pp.items():
                 if type(k) is list:
                     for i in k:
@@ -187,7 +187,7 @@ class preprocessor:
         rList = []
 
         for t in tagList:
-            print(t)
+            #print(t)
             text = t.repname.split("/")[0]
             for u in self.uniques:
                 if len(text) > 1:
@@ -203,25 +203,26 @@ class preprocessor:
     def search_topic(self, tagList):
         lst = self.search_topic_candidate(tagList)
         # print("candidate", lst)
-        print(lst)
         for word in lst:
-            print(word)
+            #print(word)
             if self.isTopic(word[1]):
                 return (word[1], word[0])
         return (None, None)
+
     def search_topic_by_sentence(self,tagList,sentence):
         lst = self.search_topic_candidate(tagList)
-
         charactor = ''
         for i in self.uniques:
             c = i.replace(' ','')
             if c in sentence:
                 charactor = i
-        print(charactor)
+        #print(charactor)
         for j in lst:
+            #print(j)
             if j[1] == charactor:
-                if self.isTopic(j[1]):
-                    return (j[1], j[0])
+                return (j[1], j[0])
+                #if self.isTopic(j[1]):
+                #    return (j[1], j[0])
         return (None, None)
 
     def isTopic(self, word):
@@ -337,15 +338,15 @@ class preprocessor:
     def getInputType(self, result):
         text = result
         string = ""
-        print(result)
+        #print(result)
         if type(result) is list:
             pass
         else:
             for tag in result.tag_list():
                 string += tag.get_surface()
-        for pt in ["よね", "でしょ", "もんね", "かね", "かな", "じゃない"]:
+        for pt in ["よね", "でしょ", "もんね", "かね", "かな", "じゃない"]: # イントネーションで100か1000か変わるから微妙...
             if pt in string:
-                return 100
+                return 1000 # あえて100の同意を求める場合はカットで．
         for pt in ["なに","なぜ","どれ" "どこ", "なんで", "どうして","だれ","誰","何の","なんの"]:
             if pt in string:
                 return 200

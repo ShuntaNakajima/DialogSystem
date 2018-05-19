@@ -23,6 +23,12 @@ class titleName:
 
         c = self.state_counter
 
+        if c == 100:
+            if "君の名は" in i:
+                return ("いいですよ。", "君の名は。")
+            else:
+                return (random.choice(["なんでしょうか．", "すみません、聞き取れませんでした", "えっ？"]), None)
+
         if c == 10:
             self.state_counter = 11
             q_first=["君の名は。の話をしない？","ねえねえ、君の名は。知ってる？"]

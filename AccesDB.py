@@ -118,7 +118,7 @@ class AccessToDataBase:
         else:
             print(genre, topic, proper)
             result = self.db.child(genre).child(topic).child(proper).get()
-            print("search result", result)
+            print("search result", result.val())
             if type(result.val()) is str:
               return [result.val()]
             for i in result.val():
